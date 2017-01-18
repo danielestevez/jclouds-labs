@@ -144,6 +144,13 @@ public class AzureComputeServiceContextModule extends
    }
 
    @Provides
+   @Singleton
+   protected final LoadingCache<RegionAndIdAndIngressRules, String> securityGroupMap(
+         CacheLoader<RegionAndIdAndIngressRules, String> in) {
+      return CacheBuilder.newBuilder().build(in);
+   }
+
+   @Provides
    @Named(TIMEOUT_NODE_RUNNING)
    protected VirtualMachineInStatePredicateFactory provideVirtualMachineRunningPredicate(final AzureComputeApi api,
          final Timeouts timeouts, final PollPeriod pollPeriod) {
@@ -203,6 +210,14 @@ public class AzureComputeServiceContextModule extends
          @Named(OPERATION_TIMEOUT) Integer operationTimeout, PollPeriod pollPeriod) {
       return retry(new ActionDonePredicate(api), operationTimeout, pollPeriod.pollInitialPeriod,
             pollPeriod.pollMaxPeriod);
+   }
+
+   @Provides
+   protected SecurityGroupAvailablePredicateFactory provideSecurityGroupAvailablePredicate(final AzureComputeApi api,
+         final AzureComputeServiceContextModule.AzureComputeConstants azureComputeConstants, final Timeouts timeouts,
+         final PollPeriod pollPeriod) {
+      return new SecurityGroupAvailablePredicateFactory(api, azureComputeConstants.operationTimeout(),
+            azureComputeConstants.operationPollInitialPeriod(), azureComputeConstants.operationPollMaxPeriod());
    }
 
    @VisibleForTesting
