@@ -27,12 +27,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.jclouds.Fallbacks.EmptyListOnNotFoundOr404;
 import org.jclouds.Fallbacks.NullOnNotFoundOr404;
-import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCard;
-import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCardProperties;
+import org.jclouds.azurecompute.arm.domain.LoadBalancer;
+import org.jclouds.azurecompute.arm.domain.LoadBalancerProperties;
 import org.jclouds.azurecompute.arm.filters.ApiVersionFilter;
 import org.jclouds.azurecompute.arm.functions.URIParser;
 import org.jclouds.javax.annotation.Nullable;
@@ -45,36 +46,37 @@ import org.jclouds.rest.annotations.ResponseParser;
 import org.jclouds.rest.annotations.SelectJson;
 import org.jclouds.rest.binders.BindToJsonPayload;
 
-@Path("/resourcegroups/{resourcegroup}/providers/Microsoft.Network/networkInterfaces")
+@Path("/resourcegroups/{resourcegroup}/providers/Microsoft.Network/loadBalancers")
 @RequestFilters({ OAuthFilter.class, ApiVersionFilter.class })
 @Consumes(MediaType.APPLICATION_JSON)
-public interface NetworkInterfaceCardApi {
+public interface LoadBalancerApi {
 
-   @Named("networkinterfacecard:list")
-   @SelectJson("value")
+   @Named("loadbalancer:list")
    @GET
+   @SelectJson("value")
    @Fallback(EmptyListOnNotFoundOr404.class)
-   List<NetworkInterfaceCard> list();
+   List<LoadBalancer> list();
 
-   @Named("networkinterfacecard:create_or_update")
-   @Path("/{networkinterfacecardname}")
-   @MapBinder(BindToJsonPayload.class)
-   @PUT
-   NetworkInterfaceCard createOrUpdate(@PathParam("networkinterfacecardname") String networkinterfacecardname,
-         @PayloadParam("location") String location,
-         @PayloadParam("properties") NetworkInterfaceCardProperties properties,
-         @Nullable @PayloadParam("tags") Map<String, String> tags);
-
-   @Named("networkinterfacecard:get")
-   @Path("/{networkinterfacecardname}")
+   @Named("loadbalancer:get")
+   @Path("/{loadbalancername}")
    @GET
    @Fallback(NullOnNotFoundOr404.class)
-   NetworkInterfaceCard get(@PathParam("networkinterfacecardname") String networkinterfacecardname);
+   LoadBalancer get(@PathParam("loadbalancername") String lbName);
 
-   @Named("networkinterfacecard:delete")
-   @Path("/{networkinterfacecardname}")
+   @Named("loadbalancer:createOrUpdate")
+   @Path("/{loadbalancername}")
+   @PUT
+   @MapBinder(BindToJsonPayload.class)
+   @Produces(MediaType.APPLICATION_JSON)
+   LoadBalancer createOrUpdate(@PathParam("loadbalancername") String lbName,
+         @PayloadParam("location") String location, @Nullable @PayloadParam("tags") Map<String, String> tags,
+         @PayloadParam("properties") LoadBalancerProperties properties);
+
+   @Named("loadbalancer:delete")
+   @Path("/{loadbalancername}")
    @DELETE
    @ResponseParser(URIParser.class)
    @Fallback(NullOnNotFoundOr404.class)
-   URI delete(@PathParam("networkinterfacecardname") String networkinterfacecardname);
+   URI delete(@PathParam("loadbalancername") String lbName);
+
 }

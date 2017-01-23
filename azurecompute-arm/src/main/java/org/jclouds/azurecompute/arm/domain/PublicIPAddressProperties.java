@@ -21,7 +21,7 @@ import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.json.SerializedNames;
 
 @AutoValue
-public abstract class PublicIPAddressProperties {
+public abstract class PublicIPAddressProperties implements Provisionable {
 
    @Nullable // needs to be nullable to create the payload for create request
    public abstract String provisioningState();

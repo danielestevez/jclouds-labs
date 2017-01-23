@@ -40,7 +40,7 @@ public abstract class Subnet {
    }
 
    @AutoValue
-   public abstract static class SubnetProperties {
+   public abstract static class SubnetProperties implements Provisionable {
 
       @Nullable
       public abstract String provisioningState();
