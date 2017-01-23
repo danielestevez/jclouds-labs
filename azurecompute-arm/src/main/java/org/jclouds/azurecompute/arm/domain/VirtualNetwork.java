@@ -42,7 +42,7 @@ public abstract class VirtualNetwork {
    }
 
    @AutoValue
-   public abstract static class VirtualNetworkProperties {
+   public abstract static class VirtualNetworkProperties implements Provisionable {
 
       @Nullable
       public abstract String provisioningState();

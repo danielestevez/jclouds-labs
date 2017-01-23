@@ -16,6 +16,7 @@
  */
 package org.jclouds.azurecompute.arm.features;
 
+import java.io.Closeable;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +28,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.jclouds.Fallbacks.EmptyListOnNotFoundOr404;
 import org.jclouds.Fallbacks.NullOnNotFoundOr404;
-import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCard;
-import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCardProperties;
+import org.jclouds.azurecompute.arm.domain.AvailabilitySet;
+import org.jclouds.azurecompute.arm.domain.AvailabilitySet.AvailabilitySetProperties;
 import org.jclouds.azurecompute.arm.filters.ApiVersionFilter;
 import org.jclouds.azurecompute.arm.functions.URIParser;
 import org.jclouds.javax.annotation.Nullable;
@@ -45,36 +47,37 @@ import org.jclouds.rest.annotations.ResponseParser;
 import org.jclouds.rest.annotations.SelectJson;
 import org.jclouds.rest.binders.BindToJsonPayload;
 
-@Path("/resourcegroups/{resourcegroup}/providers/Microsoft.Network/networkInterfaces")
+@Path("/resourcegroups/{resourcegroup}/providers/Microsoft.Compute/availabilitySets")
 @RequestFilters({ OAuthFilter.class, ApiVersionFilter.class })
 @Consumes(MediaType.APPLICATION_JSON)
-public interface NetworkInterfaceCardApi {
+public interface AvailabilitySetApi extends Closeable {
 
-   @Named("networkinterfacecard:list")
-   @SelectJson("value")
+   @Named("availabilityset:list")
    @GET
+   @SelectJson("value")
    @Fallback(EmptyListOnNotFoundOr404.class)
-   List<NetworkInterfaceCard> list();
+   List<AvailabilitySet> list();
 
-   @Named("networkinterfacecard:create_or_update")
-   @Path("/{networkinterfacecardname}")
-   @MapBinder(BindToJsonPayload.class)
-   @PUT
-   NetworkInterfaceCard createOrUpdate(@PathParam("networkinterfacecardname") String networkinterfacecardname,
-         @PayloadParam("location") String location,
-         @PayloadParam("properties") NetworkInterfaceCardProperties properties,
-         @Nullable @PayloadParam("tags") Map<String, String> tags);
-
-   @Named("networkinterfacecard:get")
-   @Path("/{networkinterfacecardname}")
+   @Named("availabilityset:get")
+   @Path("/{name}")
    @GET
    @Fallback(NullOnNotFoundOr404.class)
-   NetworkInterfaceCard get(@PathParam("networkinterfacecardname") String networkinterfacecardname);
+   AvailabilitySet get(@PathParam("name") String name);
 
-   @Named("networkinterfacecard:delete")
-   @Path("/{networkinterfacecardname}")
+   @Named("availabilityset:createOrUpdate")
+   @Path("/{name}")
+   @PUT
+   @MapBinder(BindToJsonPayload.class)
+   @Produces(MediaType.APPLICATION_JSON)
+   AvailabilitySet createOrUpdate(@PathParam("name") String name,
+         @PayloadParam("location") String location, @Nullable @PayloadParam("tags") Map<String, String> tags,
+         @PayloadParam("properties") AvailabilitySetProperties properties);
+
+   @Named("availabilityset:delete")
+   @Path("/{name}")
    @DELETE
    @ResponseParser(URIParser.class)
    @Fallback(NullOnNotFoundOr404.class)
-   URI delete(@PathParam("networkinterfacecardname") String networkinterfacecardname);
+   URI delete(@PathParam("name") String name);
+
 }

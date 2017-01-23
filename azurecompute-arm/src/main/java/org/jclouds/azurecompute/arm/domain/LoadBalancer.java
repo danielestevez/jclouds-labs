@@ -16,37 +16,35 @@
  */
 package org.jclouds.azurecompute.arm.domain;
 
-import com.google.auto.value.AutoValue;
 import java.util.Map;
+
 import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.json.SerializedNames;
+
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 
-
 @AutoValue
-public abstract class ResourceGroup {
-
-   @AutoValue
-   public abstract static class ResourceGroupProperties implements Provisionable {
-      @Nullable
-      public abstract String provisioningState();
-
-      @SerializedNames({"provisioningState"})
-      public static ResourceGroupProperties create(final String provisioningState) {
-         return new AutoValue_ResourceGroup_ResourceGroupProperties(provisioningState);
-      }
-   }
-
-   public abstract String id();
+public abstract class LoadBalancer {
+   @Nullable
    public abstract String name();
+
+   @Nullable
    public abstract String location();
 
    @Nullable
    public abstract Map<String, String> tags();
-   public abstract ResourceGroupProperties properties();
 
-   @SerializedNames({"id", "name", "location", "tags", "properties"})
-   public static ResourceGroup create(String id, String name, String location, Map<String, String> tags, ResourceGroupProperties properties) {
-      return new AutoValue_ResourceGroup(id, name, location, tags == null ? null : ImmutableMap.copyOf(tags), properties);
+   @Nullable
+   public abstract LoadBalancerProperties properties();
+
+   @Nullable
+   public abstract String etag();
+
+   @SerializedNames({ "name", "location", "tags", "properties", "etag" })
+   public static LoadBalancer create(final String name, final String location, final Map<String, String> tags,
+         final LoadBalancerProperties properties, final String etag) {
+      return new AutoValue_LoadBalancer(name, location, tags == null ? null : ImmutableMap.copyOf(tags), properties,
+            etag);
    }
 }

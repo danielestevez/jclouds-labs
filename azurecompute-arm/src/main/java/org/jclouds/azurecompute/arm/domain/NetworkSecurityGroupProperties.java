@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 @AutoValue
-public abstract class NetworkSecurityGroupProperties {
+public abstract class NetworkSecurityGroupProperties implements Provisionable {
 
    @Nullable
    public abstract List<NetworkSecurityRule> securityRules();
