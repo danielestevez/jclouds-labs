@@ -43,6 +43,25 @@ public abstract class LoadBalancingRuleProperties {
          return label;
       }
    }
+   
+   public enum LoadDistribution {
+      Default("Default"), SourceIp("SourceIP"), SourceIPProtocol("SourceIPProtocol"), UNRECOGNIZED("Unrecognized");
+
+      private final String label;
+
+      private LoadDistribution(final String label) {
+         this.label = label;
+      }
+
+      public static LoadDistribution fromValue(final String text) {
+         return (LoadDistribution) GetEnumValue.fromValueOrDefault(text, LoadDistribution.UNRECOGNIZED);
+      }
+
+      @Override
+      public String toString() {
+         return label;
+      }
+   }
 
    @Nullable
    public abstract IdReference frontendIPConfiguration();
@@ -66,7 +85,7 @@ public abstract class LoadBalancingRuleProperties {
    public abstract Integer idleTimeoutInMinutes();
 
    @Nullable
-   public abstract String loadDistribution();
+   public abstract LoadDistribution loadDistribution();
 
    @Nullable
    public abstract String provisioningState();
@@ -76,7 +95,7 @@ public abstract class LoadBalancingRuleProperties {
    public static LoadBalancingRuleProperties create(final IdReference frontendIPConfiguration,
          final IdReference backendAddressPool, final Protocol protocol, final int frontendPort, final int backendPort,
          final IdReference probe, final Boolean enableFloatingIP, final Integer idleTimeoutInMinutes,
-         final String loadDistribution, final String provisioningState) {
+         final LoadDistribution loadDistribution, final String provisioningState) {
       return builder().frontendIPConfiguration(frontendIPConfiguration).backendAddressPool(backendAddressPool)
             .protocol(protocol).frontendPort(frontendPort).backendPort(backendPort).probe(probe)
             .enableFloatingIP(enableFloatingIP).idleTimeoutInMinutes(idleTimeoutInMinutes)
@@ -105,7 +124,7 @@ public abstract class LoadBalancingRuleProperties {
 
       public abstract Builder idleTimeoutInMinutes(Integer idleTimeoutInMinutes);
 
-      public abstract Builder loadDistribution(String loadDistribution);
+      public abstract Builder loadDistribution(LoadDistribution loadDistribution);
 
       public abstract Builder provisioningState(String provisioningState);
 
