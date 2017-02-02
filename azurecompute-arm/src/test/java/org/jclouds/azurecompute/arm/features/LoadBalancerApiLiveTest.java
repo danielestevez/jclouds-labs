@@ -337,7 +337,7 @@ public class LoadBalancerApiLiveTest extends BaseComputeServiceContextLiveTest {
             .builder().build();
       FrontendIPConfigurations frontendIPConfigurations = FrontendIPConfigurations.create("ipConfigs", null,
             frontendIPConfigurationsProperties, null);
-      return LoadBalancer.create(lbName, locationName, null,
+      return LoadBalancer.create(lbName, null, locationName, null,
             LoadBalancerProperties.builder().frontendIPConfigurations(ImmutableList.of(frontendIPConfigurations))
                   .build(), null);
    }

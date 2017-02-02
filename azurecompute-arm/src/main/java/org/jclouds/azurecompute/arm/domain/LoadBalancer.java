@@ -30,6 +30,9 @@ public abstract class LoadBalancer {
    public abstract String name();
 
    @Nullable
+   public abstract String id();
+
+   @Nullable
    public abstract String location();
 
    @Nullable
@@ -41,10 +44,11 @@ public abstract class LoadBalancer {
    @Nullable
    public abstract String etag();
 
-   @SerializedNames({ "name", "location", "tags", "properties", "etag" })
-   public static LoadBalancer create(final String name, final String location, final Map<String, String> tags,
+   @SerializedNames({ "name", "id", "location", "tags", "properties", "etag" })
+   public static LoadBalancer create(final String name, final String id, final String location,
+         final Map<String, String> tags,
          final LoadBalancerProperties properties, final String etag) {
-      return new AutoValue_LoadBalancer(name, location, tags == null ? null : ImmutableMap.copyOf(tags), properties,
+      return new AutoValue_LoadBalancer(name, id, location, tags == null ? null : ImmutableMap.copyOf(tags), properties,
             etag);
    }
 }
