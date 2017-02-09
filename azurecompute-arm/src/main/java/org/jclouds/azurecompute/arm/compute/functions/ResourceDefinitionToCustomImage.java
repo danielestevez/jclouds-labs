@@ -69,7 +69,7 @@ public class ResourceDefinitionToCustomImage implements Function<ResourceDefinit
       
       VirtualMachine vm = api.getVirtualMachineApi(resourceGroup.name()).get(regionAndId.id());
       if (vm == null) {
-         throw new IllegalArgumentException("Node " + regionAndId.id() + " was not found");
+         return null;
       }
       String storageAccountName = storageProfileToStorageAccountName.apply(vm.properties().storageProfile());
 

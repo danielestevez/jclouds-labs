@@ -123,6 +123,8 @@ public class AzureComputeImageExtension implements ImageExtension {
 
             Image image = resourceDefinitionToImage.create(cloneTemplate.getSourceNodeId(), cloneTemplate.getName())
                   .apply(definitions.get(0));
+            checkState(image != null, "Image %s was not created for the requested node",
+                  cloneTemplate.getSourceNodeId());
             logger.debug(">> created %s", image);
             return image;
          }
