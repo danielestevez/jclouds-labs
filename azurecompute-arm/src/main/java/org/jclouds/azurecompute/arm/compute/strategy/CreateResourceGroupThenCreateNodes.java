@@ -37,12 +37,12 @@ import javax.inject.Singleton;
 
 import org.jclouds.Constants;
 import org.jclouds.azurecompute.arm.AzureComputeApi;
-import org.jclouds.azurecompute.arm.compute.domain.RegionAndIdAndIngressRules;
+import org.jclouds.azurecompute.arm.compute.domain.RegionScopeIdAndIngressRules;
 import org.jclouds.azurecompute.arm.compute.functions.TemplateToAvailabilitySet;
 import org.jclouds.azurecompute.arm.compute.options.AzureTemplateOptions;
 import org.jclouds.azurecompute.arm.domain.AvailabilitySet;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityGroup;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.StorageService;
 import org.jclouds.azurecompute.arm.domain.Subnet;
@@ -81,7 +81,7 @@ public class CreateResourceGroupThenCreateNodes extends CreateNodesWithGroupEnco
    protected Logger logger = Logger.NULL;
 
    private final AzureComputeApi api;
-   private final LoadingCache<RegionAndIdAndIngressRules, String> securityGroupMap;
+   private final LoadingCache<RegionScopeIdAndIngressRules, String> securityGroupMap;
    private final LoadingCache<String, ResourceGroup> resourceGroupMap;
    private final String defaultVnetAddressPrefix;
    private final String defaultSubnetAddressPrefix;
@@ -97,7 +97,7 @@ public class CreateResourceGroupThenCreateNodes extends CreateNodesWithGroupEnco
          CustomizeNodeAndAddToGoodMapOrPutExceptionIntoBadMap.Factory customizeNodeAndAddToGoodMapOrPutExceptionIntoBadMapFactory,
          AzureComputeApi api, @Named(DEFAULT_VNET_ADDRESS_SPACE_PREFIX) String defaultVnetAddressPrefix,
          @Named(DEFAULT_SUBNET_ADDRESS_PREFIX) String defaultSubnetAddressPrefix,
-         LoadingCache<RegionAndIdAndIngressRules, String> securityGroupMap,
+         LoadingCache<RegionScopeIdAndIngressRules, String> securityGroupMap,
          LoadingCache<String, ResourceGroup> resourceGroupMap, @Named("STORAGE") Predicate<URI> storageAccountCreated,
          TemplateToAvailabilitySet templateToAvailabilitySet) {
       super(addNodeWithGroupStrategy, listNodesStrategy, namingConvention, userExecutor,
@@ -188,8 +188,9 @@ public class CreateResourceGroupThenCreateNodes extends CreateNodesWithGroupEnco
       }
 
       StorageService storageService = api.getStorageAccountApi(resourceGroupName).get(storageAccountName);
-      if (storageService != null)
+      if (storageService != null) {
          return storageService;
+      }
 
       URI uri = api.getStorageAccountApi(resourceGroupName).create(storageAccountName, locationName,
             ImmutableMap.of("jclouds", name),
@@ -209,17 +210,18 @@ public class CreateResourceGroupThenCreateNodes extends CreateNodesWithGroupEnco
 
       if (!options.getGroups().isEmpty()) {
          String groupName = getOnlyElement(options.getGroups());
-         String groupNameWithourRegion = groupName.indexOf('/') == -1 ? groupName : RegionAndId.fromSlashEncoded(
+         String groupNameWithourRegion = groupName.indexOf('/') == -1 ? groupName : RegionScopeId.fromSlashEncoded(
                groupName).id();
          NetworkSecurityGroup securityGroup = api.getNetworkSecurityGroupApi(resourceGroup).get(groupNameWithourRegion);
          checkArgument(securityGroup != null, "Security group %s was not found", groupName);
          options.securityGroups(securityGroup.id());
       } else if (options.getInboundPorts().length > 0) {
          String name = namingConvention.create().sharedNameForGroup(group);
-         RegionAndIdAndIngressRules regionAndIdAndIngressRules = RegionAndIdAndIngressRules.create(location.getId(),
+         RegionScopeIdAndIngressRules regionScopeIdAndIngressRules = RegionScopeIdAndIngressRules.create(location.getId(),
+               resourceGroup,
                name, options.getInboundPorts());
          // this will create if not yet exists.
-         String securityGroupId = securityGroupMap.getUnchecked(regionAndIdAndIngressRules);
+         String securityGroupId = securityGroupMap.getUnchecked(regionScopeIdAndIngressRules);
          options.securityGroups(securityGroupId);
       }
    }

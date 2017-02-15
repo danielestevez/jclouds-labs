@@ -30,7 +30,7 @@ import org.jclouds.azurecompute.arm.domain.IdReference;
 import org.jclouds.azurecompute.arm.domain.IpConfiguration;
 import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCard;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityGroup;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.StorageServiceKeys;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
@@ -79,7 +79,7 @@ public class CleanupResources {
    }
 
    public boolean cleanupNode(final String id) {
-      RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       String resourceGroupName = resourceGroup.name();
 

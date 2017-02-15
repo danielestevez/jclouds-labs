@@ -34,7 +34,7 @@ import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.VirtualMachineInStatePredicateFactory;
 import org.jclouds.azurecompute.arm.compute.functions.ResourceDefinitionToCustomImage;
 import org.jclouds.azurecompute.arm.compute.strategy.CleanupResources;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceDefinition;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.StorageServiceKeys;
@@ -96,7 +96,7 @@ public class AzureComputeImageExtension implements ImageExtension {
    public ListenableFuture<Image> createImage(ImageTemplate template) {
       final CloneImageTemplate cloneTemplate = (CloneImageTemplate) template;
 
-      final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(cloneTemplate.getSourceNodeId());
+      final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(cloneTemplate.getSourceNodeId());
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       final String resourceGroupName = resourceGroup.name();
 

@@ -16,13 +16,13 @@
  */
 package org.jclouds.azurecompute.arm.features;
 
-import static org.jclouds.azurecompute.arm.compute.options.AzureTemplateOptions.Builder.availabilitySet;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.jclouds.azurecompute.arm.compute.options.AzureTemplateOptions.Builder.availabilitySet;
 import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.TIMEOUT_RESOURCE_DELETED;
 import static org.jclouds.azurecompute.arm.domain.InboundNatRuleProperties.Protocol.Tcp;
 import static org.jclouds.compute.predicates.NodePredicates.inGroup;
@@ -41,6 +41,7 @@ import java.util.Set;
 import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.PublicIpAvailablePredicateFactory;
 import org.jclouds.azurecompute.arm.domain.AvailabilitySet;
+import org.jclouds.azurecompute.arm.domain.AvailabilitySet.AvailabilitySetProperties;
 import org.jclouds.azurecompute.arm.domain.BackendAddressPool;
 import org.jclouds.azurecompute.arm.domain.BackendAddressPoolProperties;
 import org.jclouds.azurecompute.arm.domain.FrontendIPConfigurations;
@@ -62,10 +63,9 @@ import org.jclouds.azurecompute.arm.domain.ProbeProperties;
 import org.jclouds.azurecompute.arm.domain.Provisionable;
 import org.jclouds.azurecompute.arm.domain.PublicIPAddress;
 import org.jclouds.azurecompute.arm.domain.PublicIPAddressProperties;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
-import org.jclouds.azurecompute.arm.domain.AvailabilitySet.AvailabilitySetProperties;
 import org.jclouds.azurecompute.arm.internal.AzureLiveTestUtils;
 import org.jclouds.compute.RunNodesException;
 import org.jclouds.compute.domain.NodeMetadata;
@@ -363,8 +363,8 @@ public class LoadBalancerApiLiveTest extends BaseComputeServiceContextLiveTest {
 
       List<String> nicNames = new ArrayList<String>();
       for (NodeMetadata node : nodes) {
-         RegionAndId regionAndId = RegionAndId.fromSlashEncoded(node.getId());
-         VirtualMachine vm = api.getVirtualMachineApi(resourceGroupName).get(regionAndId.id());
+         RegionScopeId regionScopeId = RegionScopeId.fromSlashEncoded(node.getId());
+         VirtualMachine vm = api.getVirtualMachineApi(resourceGroupName).get(regionScopeId.id());
 
          String nicName = getLast(Splitter.on("/").split(
                vm.properties().networkProfile().networkInterfaces().get(0).id()));

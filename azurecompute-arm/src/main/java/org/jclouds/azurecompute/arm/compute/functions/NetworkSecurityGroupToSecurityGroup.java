@@ -27,7 +27,8 @@ import javax.inject.Singleton;
 
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityGroup;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityRule;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
+import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.collect.Memoized;
 import org.jclouds.compute.domain.SecurityGroup;
 import org.jclouds.compute.domain.SecurityGroupBuilder;
@@ -36,25 +37,29 @@ import org.jclouds.net.domain.IpPermission;
 
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.google.common.cache.LoadingCache;
 import com.google.inject.Inject;
 
 @Singleton
 public class NetworkSecurityGroupToSecurityGroup implements Function<NetworkSecurityGroup, SecurityGroup> {
    private final Function<NetworkSecurityRule, IpPermission> ruleToPermission;
    private final Supplier<Set<? extends Location>> locations;
+   private final LoadingCache<String, ResourceGroup> resourceGroupMap;
 
    @Inject
    NetworkSecurityGroupToSecurityGroup(Function<NetworkSecurityRule, IpPermission> ruleToPermission,
-         @Memoized Supplier<Set<? extends Location>> locations) {
+         @Memoized Supplier<Set<? extends Location>> locations, LoadingCache<String, ResourceGroup> resourceGroupMap) {
       this.ruleToPermission = ruleToPermission;
       this.locations = locations;
+      this.resourceGroupMap = resourceGroupMap;
    }
 
    @Override
    public SecurityGroup apply(NetworkSecurityGroup input) {
       SecurityGroupBuilder builder = new SecurityGroupBuilder();
+      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(input.location());
 
-      builder.id(RegionAndId.fromRegionAndId(input.location(), input.name()).slashEncode());
+      builder.id(RegionScopeId.fromRegionScopeId(input.location(), resourceGroup.name(), input.name()).slashEncode());
       builder.providerId(input.properties().resourceGuid());
       builder.name(input.name());
       builder.location(getLocation(locations, input.location()));

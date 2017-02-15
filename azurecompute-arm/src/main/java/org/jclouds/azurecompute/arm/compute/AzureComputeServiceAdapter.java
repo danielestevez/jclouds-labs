@@ -45,7 +45,7 @@ import org.jclouds.azurecompute.arm.domain.Offer;
 import org.jclouds.azurecompute.arm.domain.Plan;
 import org.jclouds.azurecompute.arm.domain.PublicIPAddress;
 import org.jclouds.azurecompute.arm.domain.PublicIPAddressProperties;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.ResourceProviderMetaData;
 import org.jclouds.azurecompute.arm.domain.SKU;
@@ -145,7 +145,10 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          availabilitySet = IdReference.create(templateOptions.getAvailabilitySet().id());
       }
 
-      String locationName = template.getLocation().getId();
+      String locationName = template.getLocation().getId(); // TODO: toLowerCase
+                                                            // for AzureARM REST
+                                                            // API
+                                                            // inconsistences
       String subnetId = templateOptions.getSubnetId();
       NetworkInterfaceCard nic = createNetworkInterfaceCard(subnetId, name, locationName, resourceGroup.name(),
             template.getOptions());
@@ -172,8 +175,10 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       // Safe to pass null credentials here, as jclouds will default populate
       // the node with the default credentials from the image, or the ones in
       // the options, if provided.
-      RegionAndId regionAndId = RegionAndId.fromRegionAndId(template.getLocation().getId(), name);
-      return new NodeAndInitialCredentials<VirtualMachine>(virtualMachine, regionAndId.slashEncode(), null);
+      RegionScopeId regionScopeId = RegionScopeId.fromRegionScopeId(template.getLocation().getId(),
+            resourceGroup.name(),
+            name);
+      return new NodeAndInitialCredentials<VirtualMachine>(virtualMachine, regionScopeId.slashEncode(), null);
    }
 
    @Override
@@ -339,7 +344,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
 
    @Override
    public VirtualMachine getNode(final String id) {
-      RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       return api.getVirtualMachineApi(resourceGroup.name()).get(regionAndId.id());
    }
@@ -351,21 +356,21 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
 
    @Override
    public void rebootNode(final String id) {
-      RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       api.getVirtualMachineApi(resourceGroup.name()).restart(regionAndId.id());
    }
 
    @Override
    public void resumeNode(final String id) {
-      RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       api.getVirtualMachineApi(resourceGroup.name()).start(regionAndId.id());
    }
 
    @Override
    public void suspendNode(final String id) {
-      RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       api.getVirtualMachineApi(resourceGroup.name()).stop(regionAndId.id());
    }

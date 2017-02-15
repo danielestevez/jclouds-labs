@@ -28,7 +28,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.jclouds.azurecompute.arm.AzureComputeApi;
-import org.jclouds.azurecompute.arm.compute.domain.RegionAndIdAndIngressRules;
+import org.jclouds.azurecompute.arm.compute.domain.RegionScopeIdAndIngressRules;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityGroup;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityGroupProperties;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityRule;
@@ -44,7 +44,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 @Singleton
-public class CreateSecurityGroupIfNeeded extends CacheLoader<RegionAndIdAndIngressRules, String> {
+public class CreateSecurityGroupIfNeeded extends CacheLoader<RegionScopeIdAndIngressRules, String> {
    @Resource
    @Named(ComputeServiceConstants.COMPUTE_LOGGER)
    protected Logger logger = Logger.NULL;
@@ -59,7 +59,7 @@ public class CreateSecurityGroupIfNeeded extends CacheLoader<RegionAndIdAndIngre
    }
 
    @Override
-   public String load(RegionAndIdAndIngressRules key) throws Exception {
+   public String load(RegionScopeIdAndIngressRules key) throws Exception {
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(key.region());
       return createSecurityGroup(key.region(), resourceGroup.name(), key.id(), key.inboundPorts());
    }

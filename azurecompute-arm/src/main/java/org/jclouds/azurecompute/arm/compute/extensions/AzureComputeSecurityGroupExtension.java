@@ -45,7 +45,7 @@ import org.jclouds.azurecompute.arm.domain.NetworkSecurityRuleProperties;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityRuleProperties.Access;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityRuleProperties.Direction;
 import org.jclouds.azurecompute.arm.domain.NetworkSecurityRuleProperties.Protocol;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
 import org.jclouds.azurecompute.arm.features.NetworkSecurityGroupApi;
@@ -119,7 +119,7 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
    public Set<SecurityGroup> listSecurityGroupsForNode(String nodeId) {
       logger.debug(">> getting security groups for node %s...", nodeId);
 
-      final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(nodeId);
+      final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(nodeId);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
 
       VirtualMachine vm = api.getVirtualMachineApi(resourceGroup.name()).get(regionAndId.id());
@@ -146,7 +146,7 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
    @Override
    public SecurityGroup getSecurityGroupById(String id) {
       logger.debug(">> getting security group %s...", id);
-      final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       NetworkSecurityGroup securityGroup = api.getNetworkSecurityGroupApi(resourceGroup.name()).get(regionAndId.id());
       return securityGroup == null ? null : securityGroupConverter.apply(securityGroup);
@@ -170,7 +170,7 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
    public boolean removeSecurityGroup(String id) {
       logger.debug(">> deleting security group %s...", id);
 
-      final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(id);
+      final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       URI uri = api.getNetworkSecurityGroupApi(resourceGroup.name()).delete(regionAndId.id());
       return resourceDeleted.apply(uri);
@@ -199,7 +199,7 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
 
       // TODO: Support Azure network tags somehow?
 
-      final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(group.getId());
+      final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(group.getId());
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
 
       NetworkSecurityGroupApi groupApi = api.getNetworkSecurityGroupApi(resourceGroup.name());
@@ -244,7 +244,7 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
 
       logger.debug(">> deleting ip permissions matching [%s] from %s...", ruleName, group.getName());
 
-      final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(group.getId());
+      final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(group.getId());
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
 
       NetworkSecurityGroupApi groupApi = api.getNetworkSecurityGroupApi(resourceGroup.name());

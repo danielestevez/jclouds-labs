@@ -23,7 +23,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.jclouds.azurecompute.arm.AzureComputeApi;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceDefinition;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.VMImage;
@@ -64,7 +64,7 @@ public class ResourceDefinitionToCustomImage implements Function<ResourceDefinit
    @SuppressWarnings("unchecked")
    @Override
    public Image apply(ResourceDefinition input) {
-      RegionAndId regionAndId = RegionAndId.fromSlashEncoded(nodeId);
+      RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(nodeId);
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       
       VirtualMachine vm = api.getVirtualMachineApi(resourceGroup.name()).get(regionAndId.id());

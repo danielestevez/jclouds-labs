@@ -24,27 +24,29 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
 @AutoValue
-public abstract class RegionAndId {
+public abstract class RegionScopeId {
 
    public abstract String region();
+
+   public abstract String scope();
    public abstract String id();
    
-   protected RegionAndId() {
+   protected RegionScopeId() {
       
    }
    
-   public static RegionAndId fromSlashEncoded(String id) {
+   public static RegionScopeId fromSlashEncoded(String id) {
       Iterable<String> parts = Splitter.on('/').split(checkNotNull(id, "id"));
-      checkArgument(Iterables.size(parts) == 2, "id must be in format regionId/id");
-      return new AutoValue_RegionAndId(Iterables.get(parts, 0), Iterables.get(parts, 1));
+      checkArgument(Iterables.size(parts) == 3, "id must be in format regionId/scopeId/id");
+      return new AutoValue_RegionScopeId(Iterables.get(parts, 0), Iterables.get(parts, 1), Iterables.get(parts, 2));
    }
 
-   public static RegionAndId fromRegionAndId(String region, String id) {
-      return new AutoValue_RegionAndId(region, id);
+   public static RegionScopeId fromRegionScopeId(String region, String scope, String id) {
+      return new AutoValue_RegionScopeId(region, scope, id);
    }
 
    public String slashEncode() {
-      return region() + "/" + id();
+      return region() + "/" + scope() + "/" + id();
    }
    
 }

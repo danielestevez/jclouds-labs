@@ -16,31 +16,36 @@
  */
 package org.jclouds.azurecompute.arm.compute.domain;
 
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Objects;
 
 @AutoValue
-public abstract class RegionAndIdAndIngressRules {
+public abstract class RegionScopeIdAndIngressRules {
 
-   abstract RegionAndId regionAndId(); // Intentionally hidden
+   abstract RegionScopeId regionScopeId(); // Intentionally hidden
    public abstract int[] inboundPorts();
 
-   RegionAndIdAndIngressRules() {
+   RegionScopeIdAndIngressRules() {
 
    }
 
-   public static RegionAndIdAndIngressRules create(String region, String id, int[] inboundPorts) {
-      return new AutoValue_RegionAndIdAndIngressRules(RegionAndId.fromRegionAndId(region, id), inboundPorts);
+   public static RegionScopeIdAndIngressRules create(String region, String scope, String id, int[] inboundPorts) {
+      return new AutoValue_RegionScopeIdAndIngressRules(RegionScopeId.fromRegionScopeId(region, scope, id),
+            inboundPorts);
    }
 
    public String id() {
-      return regionAndId().id();
+      return regionScopeId().id();
    }
 
    public String region() {
-      return regionAndId().region();
+      return regionScopeId().region();
+   }
+
+   public String scope() {
+      return regionScopeId().scope();
    }
 
    // Intentionally delegate equals and hashcode to the fields in the parent
@@ -56,10 +61,10 @@ public abstract class RegionAndIdAndIngressRules {
       if (obj == this) {
          return true;
       }
-      if (!(obj instanceof RegionAndId)) {
+      if (!(obj instanceof RegionScopeId)) {
          return false;
       }
-      RegionAndId that = (RegionAndId) obj;
+      RegionScopeId that = (RegionScopeId) obj;
       return Objects.equal(region(), that.region()) && Objects.equal(id(), that.id());
    }
 

@@ -16,21 +16,31 @@
  */
 package org.jclouds.azurecompute.arm.compute.functions;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.Iterables.find;
+import static com.google.common.collect.Iterables.tryFind;
+import static org.jclouds.azurecompute.arm.compute.AzureComputeServiceAdapter.GROUP_KEY;
+import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CONTAINER_NAME;
+import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CUSTOM_IMAGE_OFFER;
+import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueId;
+import static org.jclouds.compute.util.ComputeServiceUtils.addMetadataAndParseTagsFromCommaDelimitedValue;
+import static org.jclouds.location.predicates.LocationPredicates.idEquals;
+import static org.jclouds.util.Closeables2.closeQuietly;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.jclouds.azurecompute.arm.AzureComputeApi;
-import org.jclouds.azurecompute.arm.compute.functions.VirtualMachineToStatus.StatusAndBackendStatus;
 import org.jclouds.azurecompute.arm.domain.IdReference;
 import org.jclouds.azurecompute.arm.domain.IpConfiguration;
 import org.jclouds.azurecompute.arm.domain.NetworkInterfaceCard;
 import org.jclouds.azurecompute.arm.domain.PublicIPAddress;
-import org.jclouds.azurecompute.arm.domain.RegionAndId;
+import org.jclouds.azurecompute.arm.domain.RegionScopeId;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.StorageProfile;
 import org.jclouds.azurecompute.arm.domain.StorageServiceKeys;
@@ -58,18 +68,6 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.common.collect.Iterables.find;
-import static com.google.common.collect.Iterables.tryFind;
-import static org.jclouds.azurecompute.arm.compute.AzureComputeServiceAdapter.GROUP_KEY;
-import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CONTAINER_NAME;
-import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CUSTOM_IMAGE_OFFER;
-import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueId;
-import static org.jclouds.compute.util.ComputeServiceUtils.addMetadataAndParseTagsFromCommaDelimitedValue;
-import static org.jclouds.location.predicates.LocationPredicates.idEquals;
-import static org.jclouds.util.Closeables2.closeQuietly;
 
 public class VirtualMachineToNodeMetadata implements Function<VirtualMachine, NodeMetadata> {
 
@@ -112,12 +110,13 @@ public class VirtualMachineToNodeMetadata implements Function<VirtualMachine, No
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(virtualMachine.location());
 
       NodeMetadataBuilder builder = new NodeMetadataBuilder();
-      builder.id(RegionAndId.fromRegionAndId(virtualMachine.location(), virtualMachine.name()).slashEncode());
+      builder.id(RegionScopeId.fromRegionScopeId(virtualMachine.location(), resourceGroup.name(), virtualMachine.name())
+            .slashEncode());
       builder.providerId(virtualMachine.id());
       builder.name(virtualMachine.name());
       builder.hostname(virtualMachine.name());
 
-      StatusAndBackendStatus status = virtualMachineToStatus.apply(virtualMachine);
+      VirtualMachineToStatus.StatusAndBackendStatus status = virtualMachineToStatus.apply(virtualMachine);
       builder.status(status.status());
       builder.backendStatus(status.backendStatus());
 

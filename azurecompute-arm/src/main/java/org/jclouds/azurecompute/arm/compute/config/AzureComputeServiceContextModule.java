@@ -34,7 +34,7 @@ import javax.inject.Singleton;
 import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.compute.AzureComputeService;
 import org.jclouds.azurecompute.arm.compute.AzureComputeServiceAdapter;
-import org.jclouds.azurecompute.arm.compute.domain.RegionAndIdAndIngressRules;
+import org.jclouds.azurecompute.arm.compute.domain.RegionScopeIdAndIngressRules;
 import org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension;
 import org.jclouds.azurecompute.arm.compute.extensions.AzureComputeSecurityGroupExtension;
 import org.jclouds.azurecompute.arm.compute.functions.LocationToLocation;
@@ -121,7 +121,7 @@ public class AzureComputeServiceContextModule extends
       bind(NodeAndTemplateOptionsToStatement.class).to(NodeAndTemplateOptionsToStatementWithoutPublicKey.class);
       bind(CreateNodesInGroupThenAddToSet.class).to(CreateResourceGroupThenCreateNodes.class);
 
-      bind(new TypeLiteral<CacheLoader<RegionAndIdAndIngressRules, String>>() {
+      bind(new TypeLiteral<CacheLoader<RegionScopeIdAndIngressRules, String>>() {
       }).to(CreateSecurityGroupIfNeeded.class);
       bind(new TypeLiteral<CacheLoader<String, ResourceGroup>>() {
       }).to(ResourceGroupForLocation.class);
@@ -134,8 +134,8 @@ public class AzureComputeServiceContextModule extends
 
    @Provides
    @Singleton
-   protected final LoadingCache<RegionAndIdAndIngressRules, String> securityGroupMap(
-         CacheLoader<RegionAndIdAndIngressRules, String> in) {
+   protected final LoadingCache<RegionScopeIdAndIngressRules, String> securityGroupMap(
+         CacheLoader<RegionScopeIdAndIngressRules, String> in) {
       return CacheBuilder.newBuilder().build(in);
    }
 
