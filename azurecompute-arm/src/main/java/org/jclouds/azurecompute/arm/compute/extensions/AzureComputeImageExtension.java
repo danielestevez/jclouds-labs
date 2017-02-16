@@ -115,7 +115,7 @@ public class AzureComputeImageExtension implements ImageExtension {
             URI uri = api.getVirtualMachineApi(resourceGroupName)
                   .capture(regionAndId.id(), cloneTemplate.getName(), CONTAINER_NAME);
             checkState(uri != null && imageAvailablePredicate.apply(uri),
-                  "Image %s was not created within the configured time limit", cloneTemplate.getName());
+                  "Image for node %s was not created within the configured time limit", cloneTemplate.getName());
 
             List<ResourceDefinition> definitions = api.getJobApi().captureStatus(uri);
             checkState(definitions.size() == 1,
