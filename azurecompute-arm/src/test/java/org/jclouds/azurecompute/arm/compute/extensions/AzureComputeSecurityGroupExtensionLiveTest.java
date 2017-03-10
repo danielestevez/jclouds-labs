@@ -16,7 +16,6 @@
  */
 package org.jclouds.azurecompute.arm.compute.extensions;
 
-import static com.google.common.collect.Iterables.get;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.jclouds.compute.options.TemplateOptions.Builder.inboundPorts;
 import static org.jclouds.compute.options.TemplateOptions.Builder.securityGroups;
@@ -40,7 +39,6 @@ import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.SecurityGroup;
 import org.jclouds.compute.extensions.SecurityGroupExtension;
 import org.jclouds.compute.extensions.internal.BaseSecurityGroupExtensionLiveTest;
-import org.jclouds.domain.Location;
 import org.jclouds.net.domain.IpPermission;
 import org.jclouds.net.util.IpPermissions;
 import org.jclouds.providers.ProviderMetadata;
@@ -123,8 +121,8 @@ public class AzureComputeSecurityGroupExtensionLiveTest extends BaseSecurityGrou
 
          SecurityGroup group = getOnlyElement(groups);
          assertEquals(group.getIpPermissions().size(), 2);
-         assertEquals(get(group.getIpPermissions(), 0), IpPermissions.permit(TCP).fromPort(22).to(24));
-         assertEquals(get(group.getIpPermissions(), 1), IpPermissions.permit(TCP).port(8000));
+         assertTrue(group.getIpPermissions().contains(IpPermissions.permit(TCP).fromPort(22).to(24)));
+         assertTrue(group.getIpPermissions().contains(IpPermissions.permit(TCP).port(8000)));
       } finally {
          computeService.destroyNodesMatching(inGroup(node.getGroup()));
       }
@@ -154,7 +152,8 @@ public class AzureComputeSecurityGroupExtensionLiveTest extends BaseSecurityGrou
    }
 
    private void createResourceGroup() {
-      Location location = getNodeTemplate().getLocation();
-      testResourceGroup = resourceGroupMap.getUnchecked(location.getId());
+      String name = String.format("rg-%s-%s", this.getClass().getSimpleName().toLowerCase(),
+          System.getProperty("user.name"));
+      testResourceGroup = resourceGroupMap.getUnchecked(name);
    }
 }
