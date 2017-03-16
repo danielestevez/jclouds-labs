@@ -26,20 +26,26 @@ import static org.jclouds.util.Closeables2.closeQuietly;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Callable;
-
 import javax.annotation.Resource;
 
 import org.jclouds.Constants;
 import org.jclouds.azurecompute.arm.AzureComputeApi;
-import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.VirtualMachineInStatePredicateFactory;
+import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule
+      .VirtualMachineInStatePredicateFactory;
 import org.jclouds.azurecompute.arm.compute.functions.ResourceDefinitionToCustomImage;
+import org.jclouds.azurecompute.arm.compute.functions.VMImageToImage;
 import org.jclouds.azurecompute.arm.compute.strategy.CleanupResources;
+import org.jclouds.azurecompute.arm.domain.IdReference;
 import org.jclouds.azurecompute.arm.domain.RegionAndId;
 import org.jclouds.azurecompute.arm.domain.ResourceDefinition;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.StorageServiceKeys;
 import org.jclouds.azurecompute.arm.domain.VMImage;
+import org.jclouds.azurecompute.arm.domain.VirtualMachine;
+import org.jclouds.azurecompute.arm.domain.VirtualMachineImage;
+import org.jclouds.azurecompute.arm.domain.VirtualMachineImageProperties;
 import org.jclouds.azurecompute.arm.util.BlobHelper;
+import org.jclouds.compute.ComputeServiceAdapter;
 import org.jclouds.compute.domain.CloneImageTemplate;
 import org.jclouds.compute.domain.Image;
 import org.jclouds.compute.domain.ImageTemplate;
@@ -95,13 +101,26 @@ public class AzureComputeImageExtension implements ImageExtension {
    @Override
    public ListenableFuture<Image> createImage(ImageTemplate template) {
       final CloneImageTemplate cloneTemplate = (CloneImageTemplate) template;
-
+      //xx
       final RegionAndId regionAndId = RegionAndId.fromSlashEncoded(cloneTemplate.getSourceNodeId());
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
       final String resourceGroupName = resourceGroup.name();
 
+      //      TODO "sudo waagent -deprovision+user";
+      // This can't be done automatically?
+      // Also there's no way to detect if a VM is deprov isioned or not and it differs on OS
+
+      //
+      final VirtualMachine vm = api.getVirtualMachineApi(resourceGroupName).get(regionAndId.id());
+      final IdReference vmIdRef = IdReference.create(vm.id());
+      //      ComputeServiceAdapter.NodeAndInitialCredentials<VirtualMachine> nodecreds = new ComputeServiceAdapter
+      //            .NodeAndInitialCredentials<VirtualMachine>(
+      //            vm, regionAndId.slashEncode(), null);
+
       logger.debug(">> stopping node %s...", regionAndId.slashEncode());
       api.getVirtualMachineApi(resourceGroupName).stop(regionAndId.id());
+      // TODO Can this fail with "Operation 'generalize' is not allowed on VM 'virtualmachineimageapilivetest-97c'
+      // since another operation is in progress. "?
       checkState(nodeSuspendedPredicate.create(resourceGroupName).apply(regionAndId.id()),
             "Node %s was not suspended within the configured time limit", regionAndId.slashEncode());
 
@@ -109,7 +128,21 @@ public class AzureComputeImageExtension implements ImageExtension {
          @Override
          public Image call() throws Exception {
             logger.debug(">> generalizing virtal machine %s...", regionAndId.id());
+
             api.getVirtualMachineApi(resourceGroupName).generalize(regionAndId.id());
+
+            VirtualMachineImage imageFromVM = api.getVirtualMachineImageApi(resourceGroupName)
+                  .create(cloneTemplate.getName(), regionAndId.region(),
+                        VirtualMachineImageProperties.builder().sourceVirtualMachine(vmIdRef).build());
+            //TODO we should check if imageFromVM is in ProvisioningState SUCCEEDED
+            //            checkState(imageFromVM != null && imageAvailablePredicate.apply(uri),
+            //                  "Image for node %s was not created within the configured time limit", cloneTemplate
+            // .getName());
+
+            // TODO Transform to compute.Image?
+            //            Image image = resourceDefinitionToImage.create(cloneTemplate.getSourceNodeId(),
+            // cloneTemplate.getName())
+            //                  .apply(imageFromVM);
 
             logger.debug(">> capturing virtual machine %s to container %s...", regionAndId.id(), CONTAINER_NAME);
             URI uri = api.getVirtualMachineApi(resourceGroupName)

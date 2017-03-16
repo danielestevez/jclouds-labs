@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -35,10 +34,12 @@ import org.jclouds.azurecompute.arm.compute.strategy.CleanupResources;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.collect.Memoized;
 import org.jclouds.compute.ComputeServiceContext;
+import org.jclouds.compute.RunNodesException;
 import org.jclouds.compute.callables.RunScriptOnNode;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.Image;
 import org.jclouds.compute.domain.NodeMetadata;
+import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.extensions.ImageExtension;
 import org.jclouds.compute.extensions.SecurityGroupExtension;
@@ -97,6 +98,12 @@ public class AzureComputeService extends BaseComputeService {
             persistNodeCredentials, timeouts, userExecutor, imageExtension, securityGroupExtension);
       this.cleanupResources = cleanupResources;
       this.resourceGroupMap = resourceGroupMap;
+   }
+
+   @Override
+   public Set<? extends NodeMetadata> createNodesInGroup(String group, int count, Template template)
+         throws RunNodesException {
+      return super.createNodesInGroup(group, count, template);
    }
 
    @Override

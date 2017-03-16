@@ -21,14 +21,12 @@ import static org.jclouds.compute.options.TemplateOptions.Builder.authorizePubli
 import java.util.Map;
 import java.util.Properties;
 
-import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.AzureComputeProviderMetadata;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.internal.AzureLiveTestUtils;
 import org.jclouds.compute.ComputeTestUtils;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.compute.extensions.internal.BaseImageExtensionLiveTest;
-import org.jclouds.domain.Location;
 import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.sshj.config.SshjSshClientModule;
 import org.testng.annotations.AfterClass;
@@ -65,16 +63,16 @@ public class AzureComputeImageExtensionLiveTest extends BaseImageExtensionLiveTe
    @Override
    @AfterClass(groups = "live", alwaysRun = true)
    protected void tearDownContext() {
-      try {
-         Location location = getNodeTemplate().build().getLocation();
-         ResourceGroup rg = resourceGroupMap.getIfPresent(location.getId());
-         if (rg != null) {
-            AzureComputeApi api = view.unwrapApi(AzureComputeApi.class);
-            api.getResourceGroupApi().delete(rg.name());
-         }
-      } finally {
-         super.tearDownContext();
-      }
+      //      try {
+      //         Location location = getNodeTemplate().build().getLocation();
+      //         ResourceGroup rg = resourceGroupMap.getIfPresent(location.getId());
+      //         if (rg != null) {
+      //            AzureComputeApi api = view.unwrapApi(AzureComputeApi.class);
+      //            api.getResourceGroupApi().delete(rg.name());
+      //         }
+      //      } finally {
+      //         super.tearDownContext();
+      //      }
    }
 
    @Override
@@ -103,5 +101,9 @@ public class AzureComputeImageExtensionLiveTest extends BaseImageExtensionLiveTe
             .overrideLoginPrivateKey(keyPair.get("private")));
    }
 
+   @Override
+   public long getSpawnNodeMaxWait() {
+      return super.getSpawnNodeMaxWait();
+   }
 
 }
