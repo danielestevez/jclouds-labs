@@ -16,6 +16,23 @@
  */
 package org.jclouds.azurecompute.arm;
 
+import static org.jclouds.Constants.PROPERTY_MAX_RATE_LIMIT_WAIT;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.API_VERSION_PREFIX;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.DEFAULT_SUBNET_ADDRESS_PREFIX;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.DEFAULT_VNET_ADDRESS_SPACE_PREFIX;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.IMAGE_PUBLISHERS;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.OPERATION_TIMEOUT;
+import static org.jclouds.compute.config.ComputeServiceProperties.IMAGE_AUTHENTICATE_SUDO;
+import static org.jclouds.compute.config.ComputeServiceProperties.IMAGE_LOGIN_USER;
+import static org.jclouds.compute.config.ComputeServiceProperties.POLL_INITIAL_PERIOD;
+import static org.jclouds.compute.config.ComputeServiceProperties.POLL_MAX_PERIOD;
+import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
+import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_PREFIX;
+import static org.jclouds.compute.config.ComputeServiceProperties.TEMPLATE;
+import static org.jclouds.compute.config.ComputeServiceProperties.TIMEOUT_NODE_TERMINATED;
+import static org.jclouds.oauth.v2.config.CredentialType.CLIENT_CREDENTIALS_SECRET;
+import static org.jclouds.oauth.v2.config.OAuthProperties.CREDENTIAL_TYPE;
+import static org.jclouds.oauth.v2.config.OAuthProperties.RESOURCE;
 
 import java.net.URI;
 import java.util.Properties;
@@ -36,29 +53,12 @@ import org.jclouds.azurecompute.arm.features.StorageAccountApi;
 import org.jclouds.azurecompute.arm.features.SubnetApi;
 import org.jclouds.azurecompute.arm.features.VMSizeApi;
 import org.jclouds.azurecompute.arm.features.VirtualMachineApi;
+import org.jclouds.azurecompute.arm.features.VirtualMachineImageApi;
 import org.jclouds.azurecompute.arm.features.VirtualNetworkApi;
 import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.providers.internal.BaseProviderMetadata;
 
 import com.google.auto.service.AutoService;
-
-import static org.jclouds.Constants.PROPERTY_MAX_RATE_LIMIT_WAIT;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.API_VERSION_PREFIX;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.DEFAULT_SUBNET_ADDRESS_PREFIX;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.DEFAULT_VNET_ADDRESS_SPACE_PREFIX;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.IMAGE_PUBLISHERS;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.OPERATION_TIMEOUT;
-import static org.jclouds.compute.config.ComputeServiceProperties.IMAGE_AUTHENTICATE_SUDO;
-import static org.jclouds.compute.config.ComputeServiceProperties.IMAGE_LOGIN_USER;
-import static org.jclouds.compute.config.ComputeServiceProperties.POLL_INITIAL_PERIOD;
-import static org.jclouds.compute.config.ComputeServiceProperties.POLL_MAX_PERIOD;
-import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_DELIMITER;
-import static org.jclouds.compute.config.ComputeServiceProperties.RESOURCENAME_PREFIX;
-import static org.jclouds.compute.config.ComputeServiceProperties.TEMPLATE;
-import static org.jclouds.compute.config.ComputeServiceProperties.TIMEOUT_NODE_TERMINATED;
-import static org.jclouds.oauth.v2.config.CredentialType.CLIENT_CREDENTIALS_SECRET;
-import static org.jclouds.oauth.v2.config.OAuthProperties.CREDENTIAL_TYPE;
-import static org.jclouds.oauth.v2.config.OAuthProperties.RESOURCE;
 
 @AutoService(ProviderMetadata.class)
 public class AzureComputeProviderMetadata extends BaseProviderMetadata {
@@ -112,6 +112,7 @@ public class AzureComputeProviderMetadata extends BaseProviderMetadata {
       properties.put(API_VERSION_PREFIX + VirtualMachineApi.class.getSimpleName(), "2015-06-15");
       properties.put(API_VERSION_PREFIX + LoadBalancerApi.class.getSimpleName(), "2016-03-30");
       properties.put(API_VERSION_PREFIX + AvailabilitySetApi.class.getSimpleName(), "2016-03-30");
+      properties.put(API_VERSION_PREFIX + VirtualMachineImageApi.class.getSimpleName(), "2016-04-30-preview");
       properties.put(API_VERSION_PREFIX + "GetVirtualMachine", "2016-03-30");
       properties.put(API_VERSION_PREFIX + "GetVirtualMachineInstance", "2016-03-30");
       properties.put(API_VERSION_PREFIX + "CreateOrUpdateVirtualMachine", "2016-03-30");

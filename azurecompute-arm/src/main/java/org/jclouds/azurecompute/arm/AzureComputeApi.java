@@ -17,7 +17,6 @@
 package org.jclouds.azurecompute.arm;
 
 import java.io.Closeable;
-
 import javax.ws.rs.PathParam;
 
 import org.jclouds.azurecompute.arm.features.AvailabilitySetApi;
@@ -36,8 +35,8 @@ import org.jclouds.azurecompute.arm.features.StorageAccountApi;
 import org.jclouds.azurecompute.arm.features.SubnetApi;
 import org.jclouds.azurecompute.arm.features.VMSizeApi;
 import org.jclouds.azurecompute.arm.features.VirtualMachineApi;
+import org.jclouds.azurecompute.arm.features.VirtualMachineImageApi;
 import org.jclouds.azurecompute.arm.features.VirtualNetworkApi;
-
 import org.jclouds.rest.annotations.Delegate;
 
 /**
@@ -169,6 +168,17 @@ public interface AzureComputeApi extends Closeable {
     */
    @Delegate
    LoadBalancerApi getLoadBalancerApi(@PathParam("resourcegroup") String resourcegroup);
+
+   /**
+    * The Virtual Machine Images API includes operations for managing iamges
+    * within your subscription.
+    *
+    * @see <a href=
+    * "https://docs.microsoft.com/en-us/rest/api/manageddisks/images/images-rest-api">docs
+    * </a>
+    */
+   @Delegate
+   VirtualMachineImageApi getVirtualMachineImageApi(@PathParam("resourcegroup") String resourcegroup);
    
    /**
     * The AvailabilitySet API includes operations for managing availability sets
