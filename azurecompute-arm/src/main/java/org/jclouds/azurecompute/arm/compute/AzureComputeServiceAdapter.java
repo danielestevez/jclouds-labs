@@ -72,6 +72,7 @@ import org.jclouds.azurecompute.arm.domain.VMImage;
 import org.jclouds.azurecompute.arm.domain.VMSize;
 import org.jclouds.azurecompute.arm.domain.Version;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
+import org.jclouds.azurecompute.arm.domain.VirtualMachineImage;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineProperties;
 import org.jclouds.azurecompute.arm.features.OSImageApi;
 import org.jclouds.azurecompute.arm.features.PublicIPAddressApi;
@@ -272,30 +273,33 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.location());
 
       if (image.custom()) {
-         VMImage customImage = null;
-         StorageServiceKeys keys = api.getStorageAccountApi(resourceGroup.name()).getKeys(image.storage());
-         if (keys == null) {
-            // If the storage account for the image does not exist, it means the
-            // image was deleted
-            return null;
-         }
-
-         BlobHelper blobHelper = new BlobHelper(image.storage(), keys.key1());
-         try {
-            if (blobHelper.customImageExists()) {
-               List<VMImage> customImagesInStorage = blobHelper.getImages(CONTAINER_NAME, resourceGroup.name(),
-                     CUSTOM_IMAGE_OFFER, image.location());
-               customImage = find(customImagesInStorage, new Predicate<VMImage>() {
-                  @Override
-                  public boolean apply(VMImage input) {
-                     return id.equals(encodeFieldsToUniqueIdCustom(input));
-                  }
-               }, null);
-            }
-         } finally {
-            closeQuietly(blobHelper);
-         }
-         return customImage;
+         VirtualMachineImage vmImage = api.getVirtualMachineImageApi(resourceGroup.name()).get(image.name());
+         return VMImage.customImage().name(vmImage.name()).build();
+         //         VMImage customImage = null;
+         //         StorageServiceKeys keys = api.getStorageAccountApi(resourceGroup.name()).getKeys(image.storage());
+         //         if (keys == null) {
+         //            // If the storage account for the image does not exist, it means the
+         //            // image was deleted
+         //            return null;
+         //         }
+         //
+         //         BlobHelper blobHelper = new BlobHelper(image.storage(), keys.key1());
+         //         try {
+         //            if (blobHelper.customImageExists()) {
+         //               List<VMImage> customImagesInStorage = blobHelper.getImages(CONTAINER_NAME, resourceGroup
+         // .name(),
+         //                     CUSTOM_IMAGE_OFFER, image.location());
+         //               customImage = find(customImagesInStorage, new Predicate<VMImage>() {
+         //                  @Override
+         //                  public boolean apply(VMImage input) {
+         //                     return id.equals(encodeFieldsToUniqueIdCustom(input));
+         //                  }
+         //               }, null);
+         //            }
+         //         } finally {
+         //            closeQuietly(blobHelper);
+         //         }
+         //         return customImage;
       }
 
       String location = image.location();
