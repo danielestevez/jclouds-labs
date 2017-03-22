@@ -16,6 +16,12 @@
  */
 package org.jclouds.azurecompute.arm.features;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jclouds.util.Predicates2.retry;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,12 +59,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.jclouds.util.Predicates2.retry;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 @Test(groups = "live", testName = "VirtualMachineApiLiveTest")
 public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
@@ -236,7 +236,7 @@ public class VirtualMachineApiLiveTest extends BaseAzureComputeApiLiveTest {
    private VirtualMachineProperties getProperties(String blob, String nic) {
 
       HardwareProfile hwProf = HardwareProfile.create("Standard_D1");
-      ImageReference imgRef = ImageReference.create("MicrosoftWindowsServerEssentials",
+      ImageReference imgRef = ImageReference.create("MicrosoftWindowsServerEssentials", "MicrosoftWindowsServerEssentials",
               "WindowsServerEssentials", "WindowsServerEssentials", "latest");
       VHD vhd = VHD.create(blob + "vhds/" + vmName + ".vhd");
       VHD vhd2 = VHD.create(blob + "vhds/" + vmName + "data.vhd");

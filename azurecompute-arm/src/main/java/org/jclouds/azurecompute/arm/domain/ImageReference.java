@@ -25,6 +25,13 @@ import org.jclouds.json.SerializedNames;
 public abstract class ImageReference {
 
    /**
+    * TSpecifies the resource identifier of a virtual machine image in your subscription. This element is only used
+    * for virtual machine images, not platform images or marketplace images.
+    */
+   @Nullable
+   public abstract String id();
+
+   /**
     * The publisher of the image reference.
     */
    @Nullable
@@ -48,13 +55,13 @@ public abstract class ImageReference {
    @Nullable
    public abstract String version();
 
-   @SerializedNames({"publisher", "offer", "sku", "version"})
-   public static ImageReference create(final String publisher,
+   @SerializedNames({ "id", "publisher", "offer", "sku", "version" })
+   public static ImageReference create(final String id, final String publisher,
                                        final String offer,
                                        final String sku,
                                        final String version) {
 
-      return builder()
+      return builder().id(id)
               .publisher(publisher)
               .offer(offer)
               .sku(sku)
@@ -70,6 +77,8 @@ public abstract class ImageReference {
 
    @AutoValue.Builder
    public abstract static class Builder {
+      public abstract Builder id(String ids);
+
       public abstract Builder publisher(String publisher);
 
       public abstract Builder offer(String offer);

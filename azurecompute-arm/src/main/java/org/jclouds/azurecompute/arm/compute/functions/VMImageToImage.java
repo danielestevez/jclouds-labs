@@ -66,24 +66,19 @@ public class VMImageToImage implements Function<VMImage, Image> {
    }
 
    public static String encodeFieldsToUniqueIdCustom(VMImage imageReference) {
-      return (imageReference.globallyAvailable() ? "global" : imageReference.location()) + "/" + imageReference.group()
-            + "/" + imageReference.storage() + "/" + imageReference.offer() + "/" + imageReference.name();
+      return (imageReference.globallyAvailable() ? "global" : imageReference.location()) + "/" + imageReference.name();
    }
 
    public static VMImage decodeFieldsFromUniqueId(final String id) {
       String[] fields = checkNotNull(id, "id").split("/");
       VMImage vmImage;
-      boolean custom = fields.length == 5;
+      boolean custom = fields.length == 2;
       if (custom) {
          /* id fields indexes
          0: imageReference.location) + "/" +
-         1: imageReference.group + "/" +
-         2: imageReference.storage + "/" +
-         3: imageReference.offer + "/" +
-         4: imageReference.name
+         1: imageReference.name
          */
-         vmImage = VMImage.customImage().location(fields[0]).group(fields[1]).storage(fields[2]).vhd1(fields[3])
-               .offer(fields[4]).build();
+         vmImage = VMImage.customImage().location(fields[0]).name(fields[1]).build();
       } else {
          /* id fields indexes
          0: imageReference.location) + "/" +
@@ -110,7 +105,7 @@ public class VMImageToImage implements Function<VMImage, Image> {
          builder.location(
                      FluentIterable.from(locations.get()).firstMatch(LocationPredicates.idEquals(image.location()))
                            .get()).name(image.name()).description(image.group()).status(Image.Status.AVAILABLE)
-               .version("latest").providerId(image.vhd1()).id(encodeFieldsToUniqueIdCustom(image));
+               .version("latest").providerId(image.name()).id(encodeFieldsToUniqueIdCustom(image));
 
          final OperatingSystem.Builder osBuilder = osFamily().apply(image);
          builder.operatingSystem(osBuilder.build());
@@ -165,7 +160,7 @@ public class VMImageToImage implements Function<VMImage, Image> {
 
             // only 64bit OS images are supported by Azure ARM
             return OperatingSystem.builder().family(family).is64Bit(true)
-                  .description(image.custom() ? image.vhd1() : image.sku())
+                  .description(image.custom() ? "custom" : image.sku())
                   .version(image.custom() ? "latest" : image.sku());
          }
       };

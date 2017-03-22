@@ -68,13 +68,13 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
 
    public static final String NAME_PREFIX = "%s";
 
-   private String preparedNodeId = "eastus/virtualmachineimageapilivetest-97c";
+   private String preparedNodeId = "eastus/vm2delete";
 
    //   private String imageId = "eastus/jcloudstest-eastus/jcloudstesteastus756/custom/imagefromportal";
 
-   private String imageId = "eastus/jcloudstest-eastus/jcloudstesteastus982/custom/imageFromRest";
+   private String imageId = "eastus/imagefromtestgroup";
 
-   private String imageGroup = "grouptestfakegeneralize";
+   private String imageGroup = "imagefromtestgroup";
 
    private LoadingCache<String, ResourceGroup> resourceGroupMap;
 
@@ -91,7 +91,7 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
             }));
    }
 
-   @Test(groups = { "integration", "live" }, enabled = true, singleThreaded = true)
+   @Test(groups = { "integration", "live" }, enabled = false, singleThreaded = true)
    public void testCreateImage() throws RunNodesException, InterruptedException, ExecutionException {
       ComputeService computeService = view.getComputeService();
       Optional<ImageExtension> imageExtension = computeService.getImageExtension();
@@ -137,7 +137,7 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
       logger.info("prepareNodeForImageCreation script init...");
    }
 
-   @Test(groups = { "integration", "live" }, dependsOnMethods = "testCreateImage", singleThreaded = true)
+   @Test(groups = { "integration", "live" }, /*dependsOnMethods = "testCreateImage",*/ singleThreaded = true)
    public void testSpawnNodeFromImage() throws RunNodesException {
       ComputeService computeService = view.getComputeService();
       Optional<? extends Image> optImage = getImage();

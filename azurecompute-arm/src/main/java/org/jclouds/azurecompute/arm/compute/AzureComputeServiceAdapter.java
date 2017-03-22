@@ -274,7 +274,8 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
 
       if (image.custom()) {
          VirtualMachineImage vmImage = api.getVirtualMachineImageApi(resourceGroup.name()).get(image.name());
-         return VMImage.customImage().name(vmImage.name()).build();
+         return VMImage.customImage().name(vmImage.name()).location(image.location())
+               .offer(vmImage.properties().storageProfile().osDisk().osType()).build();
          //         VMImage customImage = null;
          //         StorageServiceKeys keys = api.getStorageAccountApi(resourceGroup.name()).getKeys(image.storage());
          //         if (keys == null) {
@@ -459,20 +460,32 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       ImageReference imageReference = null;
       VHD sourceImage = null;
       String osType = null;
+      OSDisk osDisk = null;
+      VHD vhd = null;
 
       if (!imageRef.custom()) {
          imageReference = ImageReference.builder().publisher(image.getProviderId()).offer(image.getName())
                .sku(image.getVersion()).version("latest").build();
-      } else {
-         sourceImage = VHD.create(image.getProviderId());
+         vhd = VHD.create(blob + "vhds/" + name + ".vhd");
 
-         // TODO: read the ostype from the image blob
+      } else {
+         // FIXME how to get the full providerId
+         //         imageReference = ImageReference.builder().id(image.getProviderId()).build();
+
+         imageReference = ImageReference.builder()
+               .id("/subscriptions/bd81406c-6028-4037-9f03-9a3af4ff725d/resourceGroups/jcloudstest-eastus/providers"
+                     + "/Microsoft" + ".Compute/images/imagefromtestgroup").build();
+
+         // String path = String.format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft
+         // .Network/publicIPAddresses/%s?%s", subscriptionid, resourcegroup, publicIpName, apiVersion);
+         //         sourceImage = VHD.create(image.getProviderId());
+         //
+         //         // TODO: read the ostype from the image blob
          OsFamily osFamily = image.getOperatingSystem().getFamily();
          osType = osFamily == OsFamily.WINDOWS ? "Windows" : "Linux";
       }
 
-      VHD vhd = VHD.create(blob + "vhds/" + name + ".vhd");
-      OSDisk osDisk = OSDisk.create(osType, name, vhd, "ReadWrite", "FromImage", sourceImage);
+      osDisk = OSDisk.create(osType, name, vhd, "ReadWrite", "FromImage", sourceImage);
 
       return StorageProfile.create(imageReference, osDisk, ImmutableList.<DataDisk> of());
    }

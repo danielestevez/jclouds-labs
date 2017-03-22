@@ -38,12 +38,12 @@ import org.jclouds.azurecompute.arm.domain.NetworkProfile;
 import org.jclouds.azurecompute.arm.domain.OSDisk;
 import org.jclouds.azurecompute.arm.domain.OSProfile;
 import org.jclouds.azurecompute.arm.domain.Plan;
+import org.jclouds.azurecompute.arm.domain.Status;
 import org.jclouds.azurecompute.arm.domain.StorageProfile;
 import org.jclouds.azurecompute.arm.domain.VHD;
 import org.jclouds.azurecompute.arm.domain.VirtualMachine;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineInstance;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineProperties;
-import org.jclouds.azurecompute.arm.domain.Status;
 import org.jclouds.azurecompute.arm.internal.BaseAzureComputeApiMockTest;
 import org.testng.annotations.Test;
 
@@ -249,7 +249,7 @@ public class VirtualMachineApiMockTest extends BaseAzureComputeApiMockTest {
 
    private VirtualMachineProperties getProperties() {
       HardwareProfile hwProf = HardwareProfile.create("Standard_D1");
-      ImageReference imgRef = ImageReference.create("publisher", "offer", "sku", "ver");
+      ImageReference imgRef = ImageReference.create("id", "publisher", "offer", "sku", "ver");
       VHD vhd = VHD.create("https://groupname2760.blob.core.windows.net/vhds/windowsmachine201624102936.vhd");
       List<DataDisk> dataDisks = new ArrayList<DataDisk>();
       OSDisk osDisk = OSDisk.create("Windows", "windowsmachine", vhd, "ReadWrite", "FromImage", null);
