@@ -72,13 +72,9 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
 
    public static final String NAME_PREFIX = "%s";
 
-   private String preparedNodeId = "eastus/vm2delete";
+   private String imageId;//= "eastus/testimage";
 
-   //   private String imageId = "eastus/jcloudstest-eastus/jcloudstesteastus756/custom/imagefromportal";
-
-   private String imageId = "eastus/testimage";
-
-   private String imageGroup = "testimagedeprovisioned";
+   private String imageGroup = "testimage2";
 
    private LoadingCache<String, ResourceGroup> resourceGroupMap;
 
@@ -95,7 +91,7 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
             }));
    }
 
-   @Test(groups = { "integration", "live" }, enabled = false, singleThreaded = true)
+   @Test(groups = { "integration", "live" }, enabled = true, singleThreaded = true)
    public void testCreateImage() throws RunNodesException, InterruptedException, ExecutionException {
       ComputeService computeService = view.getComputeService();
       Optional<ImageExtension> imageExtension = computeService.getImageExtension();
@@ -121,54 +117,8 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
       assertTrue(optImage.isPresent());
    }
 
-   @Test(groups = { "integration", "live" }, enabled = false, singleThreaded = true)
-   public void testCreateImageFix() throws RunNodesException, InterruptedException, ExecutionException {
-      ComputeService computeService = view.getComputeService();
-      Optional<ImageExtension> imageExtension = computeService.getImageExtension();
-      assertTrue(imageExtension.isPresent(), "image extension was not present");
-
-      //TODO create new VM with script
-      //      view.getComputeService().createNodesInGroup(group, count, availabilitySet(as).runScript("el comando"))
-      //      LoginCredentials creds = view.getComputeService().getNodeMetadata
-      // ("eastus/virtualmachineimageapilivetest-97c")
-      //            .getCredentials();
-
-      //      Template template = getNodeTemplate().forceCacheReload().build();
-      //      NodeMetadata node = Iterables.getOnlyElement(computeService.createNodesInGroup(imageGroup, 1, template));
-
-      //      String nodeId = "eastus/vm2image";
-      //      NodeMetadata node = computeService.getNodeMetadata(nodeId);
-      //      checkReachable(node);
-      //
-      //      prepareNodeForImageCreation(node);
-      //      checkNotReachable(node);
-
-      logger.info("Creating image from node %s, started with template: %s", node, "template");
-      //      ImageTemplate newImageTemplate = imageExtension.get().buildImageTemplateFromNode(imageGroup, node.getId
-      // ());
-      ImageTemplate newImageTemplate = imageExtension.get().buildImageTemplateFromNode(imageGroup, preparedNodeId);
-
-      Image image = imageExtension.get().createImage(newImageTemplate).get();
-      logger.info("Image created: %s", image);
-
-      assertEquals(imageGroup, image.getName());
-
-      imageId = image.getId();
-      //      computeService.destroyNode(node.getId());
-
-      Optional<? extends Image> optImage = getImage();
-      assertTrue(optImage.isPresent());
-   }
-
-   protected void prepareNodeForImageCreation(NodeMetadata node) {
-      logger.info("prepareNodeForImageCreation script init...");
-      view.getComputeService().runScriptOnNode(node.getId(), "waagent -deprovision+user -force",
-            overrideAuthenticateSudo(true).overrideLoginUser("azureabiquo").overrideLoginPassword("azureabiqu0!"));
-      logger.info("prepareNodeForImageCreation script init...");
-   }
-
    @Test(groups = { "integration",
-         "live" }, enabled = true/*, dependsOnMethods = "testCreateImage"*/, singleThreaded = true)
+         "live" }, enabled = true, dependsOnMethods = "testCreateImage", singleThreaded = true)
    public void testSpawnNodeFromImage() throws RunNodesException {
       ComputeService computeService = view.getComputeService();
       Optional<? extends Image> optImage = getImage();
@@ -222,14 +172,6 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
       return templateBuilder
             .options(authorizePublicKey(keyPair.get("public")).overrideLoginPrivateKey(keyPair.get("private")));
       }
-
-   //   public TemplateBuilder getNodeTemplate() {
-   //      TemplateBuilder templateBuilder = view.getComputeService().templateBuilder();
-   //      if (templateBuilderSpec != null) {
-   //         templateBuilder = templateBuilder.from(templateBuilderSpec);
-   //      }
-   //      return templateBuilder;
-   //   }
 
    private void checkReachable(NodeMetadata node) {
       SshClient client = view.utils().sshForNode().apply(node);

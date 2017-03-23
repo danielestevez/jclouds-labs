@@ -443,22 +443,12 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          vhd = VHD.create(blob + "vhds/" + name + ".vhd");
 
       } else {
-         // FIXME how to get the full providerI
+         // FIXME how to get the full providerId
          ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.getLocation().getId());
 
          imageReference = ImageReference.builder()
                .id(api.getVirtualMachineImageApi(resourceGroup.name()).get(image.getName()).id()).build();
 
-         //         imageReference = ImageReference.builder()
-         //               .id("/subscriptions/bd81406c-6028-4037-9f03-9a3af4ff725d/resourceGroups/jcloudstest-eastus
-         // /providers"
-         //                     + "/Microsoft" + ".Compute/images/imagecreatedgroup").build();
-
-         // String path = String.format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft
-         // .Network/publicIPAddresses/%s?%s", subscriptionid, resourcegroup, publicIpName, apiVersion);
-         //         sourceImage = VHD.create(image.getProviderId());
-         //
-         //         // TODO: read the ostype from the image blob
          OsFamily osFamily = image.getOperatingSystem().getFamily();
          osType = osFamily == OsFamily.WINDOWS ? "Windows" : "Linux";
       }
