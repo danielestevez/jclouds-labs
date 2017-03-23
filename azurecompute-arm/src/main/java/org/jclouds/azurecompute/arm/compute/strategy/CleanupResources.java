@@ -118,6 +118,11 @@ public class CleanupResources {
    }
 
    public void cleanupVirtualMachineStorage(String group, VirtualMachine virtualMachine) {
+      if (virtualMachine.properties().storageProfile().osDisk().vhd() == null) {
+         logger.debug(">> virtual machine %s has only managed disks. No need to delete storage account ...",
+               virtualMachine.name());
+         return;
+      }
       String storageAccountName = storageProfileToStorageAccountName
             .apply(virtualMachine.properties().storageProfile());
       StorageServiceKeys keys = api.getStorageAccountApi(group).getKeys(storageAccountName);

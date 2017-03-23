@@ -69,6 +69,11 @@ public class VMImageToImage implements Function<VMImage, Image> {
       return (imageReference.globallyAvailable() ? "global" : imageReference.location()) + "/" + imageReference.name();
    }
 
+   public static String encodeFieldsToUniqueIdCustom(boolean globallyAvailable, String locatioName,
+         ImageReference imageReference) {
+      return (globallyAvailable ? "global" : locatioName) + "/" + imageReference.id();
+   }
+
    public static VMImage decodeFieldsFromUniqueId(final String id) {
       String[] fields = checkNotNull(id, "id").split("/");
       VMImage vmImage;

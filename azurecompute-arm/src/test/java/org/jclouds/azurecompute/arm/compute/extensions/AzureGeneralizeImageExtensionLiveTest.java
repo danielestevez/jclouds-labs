@@ -72,9 +72,9 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
 
    //   private String imageId = "eastus/jcloudstest-eastus/jcloudstesteastus756/custom/imagefromportal";
 
-   private String imageId = "eastus/imagefromtestgroup";
+   private String imageId = "eastus/imagecreatedgroup";
 
-   private String imageGroup = "imagefromtestgroup";
+   private String imageGroup = "imagecreatedgroup";
 
    private LoadingCache<String, ResourceGroup> resourceGroupMap;
 

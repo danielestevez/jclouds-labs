@@ -67,6 +67,7 @@ import static org.jclouds.azurecompute.arm.compute.AzureComputeServiceAdapter.GR
 import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CONTAINER_NAME;
 import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CUSTOM_IMAGE_OFFER;
 import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueId;
+import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueIdCustom;
 import static org.jclouds.compute.util.ComputeServiceUtils.addMetadataAndParseTagsFromCommaDelimitedValue;
 import static org.jclouds.location.predicates.LocationPredicates.idEquals;
 import static org.jclouds.util.Closeables2.closeQuietly;
@@ -207,7 +208,10 @@ public class VirtualMachineToNodeMetadata implements Function<VirtualMachine, No
    protected Optional<? extends Image> findImage(final StorageProfile storageProfile, String locatioName,
          String azureGroup) {
       if (storageProfile.imageReference() != null) {
-         String imageId = encodeFieldsToUniqueId(false, locatioName, storageProfile.imageReference());
+         // FIXME check this condition
+         String imageId = storageProfile.imageReference().id() != null ?
+               encodeFieldsToUniqueIdCustom(false, locatioName, storageProfile.imageReference()) :
+               encodeFieldsToUniqueId(false, locatioName, storageProfile.imageReference());
          return imageCache.get(imageId);
       } else {
          String storageAccountName = storageProfileToStorageAccountName.apply(storageProfile);
