@@ -110,7 +110,7 @@ public class VMImageToImage implements Function<VMImage, Image> {
          builder.location(
                      FluentIterable.from(locations.get()).firstMatch(LocationPredicates.idEquals(image.location()))
                            .get()).name(image.name()).description(image.group()).status(Image.Status.AVAILABLE)
-               .version("latest").providerId(image.name()).id(encodeFieldsToUniqueIdCustom(image));
+               .version("latest").providerId(image.id()).id(encodeFieldsToUniqueIdCustom(image));
 
          final OperatingSystem.Builder osBuilder = osFamily().apply(image);
          builder.operatingSystem(osBuilder.build());

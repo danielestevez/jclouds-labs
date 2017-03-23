@@ -24,6 +24,9 @@ import com.google.auto.value.AutoValue;
 @AutoValue
 public abstract class VirtualMachineImage {
    @Nullable
+   public abstract String id();
+
+   @Nullable
    public abstract String name();
 
    @Nullable
@@ -32,9 +35,9 @@ public abstract class VirtualMachineImage {
    @Nullable
    public abstract VirtualMachineImageProperties properties();
 
-   @SerializedNames({ "name", "location", "properties" })
-   public static VirtualMachineImage create(final String name, final String location,
+   @SerializedNames({ "id", "name", "location", "properties" })
+   public static VirtualMachineImage create(final String id, final String name, final String location,
          final VirtualMachineImageProperties properties) {
-      return new AutoValue_VirtualMachineImage(name, location, properties);
+      return new AutoValue_VirtualMachineImage(id, name, location, properties);
    }
 }

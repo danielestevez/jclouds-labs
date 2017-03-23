@@ -164,7 +164,7 @@ public class VirtualMachineImageApiMockTest extends BaseAzureComputeApiMockTest 
    }
 
    private VirtualMachineImage newVirtualMachineImage() {
-      return VirtualMachineImage.create(imageName, location,
+      return VirtualMachineImage.create(null, imageName, location,
             VirtualMachineImageProperties.builder().sourceVirtualMachine(IdReference.create("vmId")).storageProfile(
                   StorageProfile.create(null, OSDisk.create("Linux", "Ubuntu", null, null, null, null),
                         ImmutableList.<DataDisk> of())).provisioningState("Succeeded").build());

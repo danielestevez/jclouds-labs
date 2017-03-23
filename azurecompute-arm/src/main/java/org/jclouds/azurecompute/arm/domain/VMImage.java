@@ -89,6 +89,12 @@ public abstract class VMImage {
    public abstract String name();
 
    /**
+    * The id of the custom image template.
+    */
+   @Nullable
+   public abstract String id();
+
+   /**
     * True if custom image
     */
    public abstract boolean custom();
@@ -115,7 +121,8 @@ public abstract class VMImage {
    
    @AutoValue.Builder
    public abstract static class Builder {
-      
+
+      public abstract Builder id(String id);
       public abstract Builder publisher(String published);
       public abstract Builder offer(String offer);
       public abstract Builder sku(String sku);

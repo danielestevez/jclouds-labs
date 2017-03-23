@@ -274,33 +274,8 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
 
       if (image.custom()) {
          VirtualMachineImage vmImage = api.getVirtualMachineImageApi(resourceGroup.name()).get(image.name());
-         return VMImage.customImage().name(vmImage.name()).location(image.location())
+         return VMImage.customImage().id(vmImage.id()).name(vmImage.name()).location(image.location())
                .offer(vmImage.properties().storageProfile().osDisk().osType()).build();
-         //         VMImage customImage = null;
-         //         StorageServiceKeys keys = api.getStorageAccountApi(resourceGroup.name()).getKeys(image.storage());
-         //         if (keys == null) {
-         //            // If the storage account for the image does not exist, it means the
-         //            // image was deleted
-         //            return null;
-         //         }
-         //
-         //         BlobHelper blobHelper = new BlobHelper(image.storage(), keys.key1());
-         //         try {
-         //            if (blobHelper.customImageExists()) {
-         //               List<VMImage> customImagesInStorage = blobHelper.getImages(CONTAINER_NAME, resourceGroup
-         // .name(),
-         //                     CUSTOM_IMAGE_OFFER, image.location());
-         //               customImage = find(customImagesInStorage, new Predicate<VMImage>() {
-         //                  @Override
-         //                  public boolean apply(VMImage input) {
-         //                     return id.equals(encodeFieldsToUniqueIdCustom(input));
-         //                  }
-         //               }, null);
-         //            }
-         //         } finally {
-         //            closeQuietly(blobHelper);
-         //         }
-         //         return customImage;
       }
 
       String location = image.location();
@@ -460,7 +435,6 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       ImageReference imageReference = null;
       VHD sourceImage = null;
       String osType = null;
-      OSDisk osDisk = null;
       VHD vhd = null;
 
       if (!imageRef.custom()) {
@@ -469,12 +443,16 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          vhd = VHD.create(blob + "vhds/" + name + ".vhd");
 
       } else {
-         // FIXME how to get the full providerId
-         //         imageReference = ImageReference.builder().id(image.getProviderId()).build();
+         // FIXME how to get the full providerI
+         ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.getLocation().getId());
 
          imageReference = ImageReference.builder()
-               .id("/subscriptions/bd81406c-6028-4037-9f03-9a3af4ff725d/resourceGroups/jcloudstest-eastus/providers"
-                     + "/Microsoft" + ".Compute/images/imagecreatedgroup").build();
+               .id(api.getVirtualMachineImageApi(resourceGroup.name()).get(image.getName()).id()).build();
+
+         //         imageReference = ImageReference.builder()
+         //               .id("/subscriptions/bd81406c-6028-4037-9f03-9a3af4ff725d/resourceGroups/jcloudstest-eastus
+         // /providers"
+         //                     + "/Microsoft" + ".Compute/images/imagecreatedgroup").build();
 
          // String path = String.format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft
          // .Network/publicIPAddresses/%s?%s", subscriptionid, resourcegroup, publicIpName, apiVersion);
@@ -485,7 +463,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          osType = osFamily == OsFamily.WINDOWS ? "Windows" : "Linux";
       }
 
-      osDisk = OSDisk.create(osType, name, vhd, "ReadWrite", "FromImage", sourceImage);
+      OSDisk osDisk = OSDisk.create(osType, name, vhd, "ReadWrite", "FromImage", sourceImage);
 
       return StorageProfile.create(imageReference, osDisk, ImmutableList.<DataDisk> of());
    }
