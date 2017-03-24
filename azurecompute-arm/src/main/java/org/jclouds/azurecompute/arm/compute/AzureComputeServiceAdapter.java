@@ -37,6 +37,7 @@ import javax.inject.Singleton;
 
 import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.PublicIpAvailablePredicateFactory;
+import org.jclouds.azurecompute.arm.compute.functions.CustomImageToVMImage;
 import org.jclouds.azurecompute.arm.compute.options.AzureTemplateOptions;
 import org.jclouds.azurecompute.arm.compute.strategy.CleanupResources;
 import org.jclouds.azurecompute.arm.domain.DataDisk;
@@ -110,17 +111,20 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
    private final Supplier<Set<String>> regionIds;
    private final PublicIpAvailablePredicateFactory publicIpAvailable;
    private final LoadingCache<String, ResourceGroup> resourceGroupMap;
+   private final CustomImageToVMImage customImagetoVmImage;
 
    @Inject
    AzureComputeServiceAdapter(final AzureComputeApi api, @Named(IMAGE_PUBLISHERS) String imagePublishers,
          CleanupResources cleanupResources, @Region Supplier<Set<String>> regionIds,
-         PublicIpAvailablePredicateFactory publicIpAvailable, LoadingCache<String, ResourceGroup> resourceGroupMap) {
+         PublicIpAvailablePredicateFactory publicIpAvailable, LoadingCache<String, ResourceGroup> resourceGroupMap,
+         CustomImageToVMImage customImagetoVmImage) {
       this.api = api;
       this.imagePublishers = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(imagePublishers);
       this.cleanupResources = cleanupResources;
       this.regionIds = regionIds;
       this.publicIpAvailable = publicIpAvailable;
       this.resourceGroupMap = resourceGroupMap;
+      this.customImagetoVmImage = customImagetoVmImage;
    }
 
    @Override
@@ -220,14 +224,6 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       List<VirtualMachineImage> customImages = api.getVirtualMachineImageApi(resourceGroup.name()).list();
       return Lists.transform(customImages, customImagetoVmImage);
    }
-   
-   private static Function<VirtualMachineImage, VMImage> customImagetoVmImage = new Function<VirtualMachineImage, VMImage>() {
-      @Override
-      public VMImage apply(VirtualMachineImage input) {
-         return VMImage.customImage().customImageId(input.id()).location(input.location()).name(input.name())
-               .offer(input.properties().storageProfile().osDisk().osType()).build();
-      }
-   };
 
    @Override
    public Iterable<VMImage> listImages() {
@@ -424,11 +420,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          vhd = VHD.create(blob + "vhds/" + name + ".vhd");
 
       } else {
-         ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.getLocation().getId());
-         VirtualMachineImage customImage = api.getVirtualMachineImageApi(resourceGroup.name()).get(imageRef.name());
-         
-         imageReference = ImageReference.builder().customImageId(customImage.id()).build();
-
+         imageReference = ImageReference.builder().customImageId(image.getProviderId()).build();
          OsFamily osFamily = image.getOperatingSystem().getFamily();
          osType = osFamily == OsFamily.WINDOWS ? "Windows" : "Linux";
       }

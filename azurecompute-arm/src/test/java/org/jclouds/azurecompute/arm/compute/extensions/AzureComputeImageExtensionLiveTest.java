@@ -17,6 +17,7 @@
 package org.jclouds.azurecompute.arm.compute.extensions;
 
 import static org.jclouds.compute.options.TemplateOptions.Builder.authorizePublicKey;
+import static org.jclouds.compute.options.RunScriptOptions.Builder.wrapInInitScript;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Map;
@@ -48,7 +49,12 @@ public class AzureComputeImageExtensionLiveTest extends BaseImageExtensionLiveTe
 
    @Override
    protected void prepareNodeBeforeCreatingImage(NodeMetadata node) {
-      ExecResponse result = view.getComputeService().runScriptOnNode(node.getId(), "waagent -deprovision+user -force");
+      // Don't wrap in the init-script, since the comand will clear the user
+      // config, and jclouds won't be able to execute more than one command
+      // (won't be able to poll for the execution status of the command when
+      // running with the init-script)
+      ExecResponse result = view.getComputeService().runScriptOnNode(node.getId(), "waagent -deprovision+user -force",
+            wrapInInitScript(false));
       assertEquals(result.getExitStatus(), 0);
    }
 

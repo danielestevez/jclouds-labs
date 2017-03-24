@@ -16,6 +16,7 @@
  */
 package org.jclouds.azurecompute.arm.compute.extensions;
 
+import static com.google.common.base.Functions.compose;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.decodeFieldsFromUniqueId;
@@ -33,6 +34,7 @@ import org.jclouds.Constants;
 import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.ImageAvailablePredicateFactory;
 import org.jclouds.azurecompute.arm.compute.config.AzureComputeServiceContextModule.VirtualMachineInStatePredicateFactory;
+import org.jclouds.azurecompute.arm.compute.functions.CustomImageToVMImage;
 import org.jclouds.azurecompute.arm.domain.IdReference;
 import org.jclouds.azurecompute.arm.domain.RegionAndId;
 import org.jclouds.azurecompute.arm.domain.ResourceDefinition;
@@ -73,6 +75,7 @@ public class AzureComputeImageExtension implements ImageExtension {
    private final LoadingCache<String, ResourceGroup> resourceGroupMap;
    private final Function<VMImage, Image> vmImageToImage;
    private final Predicate<URI> resourceDeleted;
+   private final CustomImageToVMImage customImagetoVmImage;
 
    @Inject
    AzureComputeImageExtension(AzureComputeApi api,
@@ -81,7 +84,8 @@ public class AzureComputeImageExtension implements ImageExtension {
          @Named(TIMEOUT_NODE_SUSPENDED) VirtualMachineInStatePredicateFactory nodeSuspendedPredicate,
          @Named(Constants.PROPERTY_USER_THREADS) ListeningExecutorService userExecutor,
          Function<VMImage, Image> vmImageToImage, LoadingCache<String, ResourceGroup> resourceGroupMap,
-         @Named(TIMEOUT_RESOURCE_DELETED) Predicate<URI> resourceDeleted) {
+         @Named(TIMEOUT_RESOURCE_DELETED) Predicate<URI> resourceDeleted,
+         CustomImageToVMImage customImagetoVmImage) {
       this.api = api;
       this.imageCapturedPredicate = imageCapturedPredicate;
       this.imageAvailablePredicate = imageAvailablePredicate;
@@ -90,6 +94,7 @@ public class AzureComputeImageExtension implements ImageExtension {
       this.vmImageToImage = vmImageToImage;
       this.resourceGroupMap = resourceGroupMap;
       this.resourceDeleted = resourceDeleted;
+      this.customImagetoVmImage = customImagetoVmImage;
    }
 
    @Override
@@ -139,8 +144,7 @@ public class AzureComputeImageExtension implements ImageExtension {
             checkState(definitions.size() == 1,
                   "Expected one resource definition after creating the image but %s were returned", definitions.size());
 
-            return vmImageToImage.apply(VMImage.customImage().customImageId(imageFromVM.id())
-                  .location(regionAndId.region()).name(imageFromVM.name()).build());
+            return compose(vmImageToImage, customImagetoVmImage).apply(imageFromVM);
          }
       });
    }
