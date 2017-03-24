@@ -19,20 +19,17 @@ package org.jclouds.azurecompute.arm.compute;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.contains;
 import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.find;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CONTAINER_NAME;
-import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CUSTOM_IMAGE_OFFER;
+import static com.google.common.collect.Iterables.transform;
 import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.decodeFieldsFromUniqueId;
-import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueIdCustom;
 import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.getMarketplacePlanFromImageMetadata;
 import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.IMAGE_PUBLISHERS;
 import static org.jclouds.compute.util.ComputeServiceUtils.metadataAndTagsAsCommaDelimitedValue;
-import static org.jclouds.util.Closeables2.closeQuietly;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -63,9 +60,6 @@ import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.ResourceProviderMetaData;
 import org.jclouds.azurecompute.arm.domain.SKU;
 import org.jclouds.azurecompute.arm.domain.StorageProfile;
-import org.jclouds.azurecompute.arm.domain.StorageService;
-import org.jclouds.azurecompute.arm.domain.StorageService.Status;
-import org.jclouds.azurecompute.arm.domain.StorageServiceKeys;
 import org.jclouds.azurecompute.arm.domain.VHD;
 import org.jclouds.azurecompute.arm.domain.VMHardware;
 import org.jclouds.azurecompute.arm.domain.VMImage;
@@ -76,7 +70,6 @@ import org.jclouds.azurecompute.arm.domain.VirtualMachineImage;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineProperties;
 import org.jclouds.azurecompute.arm.features.OSImageApi;
 import org.jclouds.azurecompute.arm.features.PublicIPAddressApi;
-import org.jclouds.azurecompute.arm.util.BlobHelper;
 import org.jclouds.compute.ComputeServiceAdapter;
 import org.jclouds.compute.domain.Image;
 import org.jclouds.compute.domain.OsFamily;
@@ -221,50 +214,38 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       }
       return osImages;
    }
+   
+   private List<VMImage> listCustomImagesByLocation(String location) {
+      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(location);
+      List<VirtualMachineImage> customImages = api.getVirtualMachineImageApi(resourceGroup.name()).list();
+      return Lists.transform(customImages, customImagetoVmImage);
+   }
+   
+   private static Function<VirtualMachineImage, VMImage> customImagetoVmImage = new Function<VirtualMachineImage, VMImage>() {
+      @Override
+      public VMImage apply(VirtualMachineImage input) {
+         return VMImage.customImage().customImageId(input.id()).location(input.location()).name(input.name())
+               .offer(input.properties().storageProfile().osDisk().osType()).build();
+      }
+   };
 
    @Override
    public Iterable<VMImage> listImages() {
-      final List<VMImage> osImages = Lists.newArrayList();
-
-      final List<String> availableLocationNames = FluentIterable.from(listLocations())
-          .transform(new Function<Location, String>() {
-             @Override public String apply(Location location) {
-                return location.name();
-             }
-          }).toList();
+      final ImmutableList.Builder<VMImage> osImages = ImmutableList.builder();
+      
+      Iterable<String> availableLocationNames = transform(listLocations(), new Function<Location, String>() {
+         @Override
+         public String apply(Location location) {
+            return location.name();
+         }
+      });
 
       for (String locationName : availableLocationNames) {
          osImages.addAll(listImagesByLocation(locationName));
+         osImages.addAll(listCustomImagesByLocation(locationName));
       }
 
-      // list custom images
-      for (ResourceGroup resourceGroup : api.getResourceGroupApi().list()) {
-         String azureGroup = resourceGroup.name();
-         List<StorageService> storages = api.getStorageAccountApi(azureGroup).list();
-
-         for (StorageService storage : storages) {
-            try {
-               String name = storage.name();
-               StorageService storageService = api.getStorageAccountApi(azureGroup).get(name);
-               if (storageService != null && availableLocationNames.contains(storageService.location())
-                     && Status.Succeeded == storageService.storageServiceProperties().provisioningState()) {
-                  String key = api.getStorageAccountApi(azureGroup).getKeys(name).key1();
-                  BlobHelper blobHelper = new BlobHelper(storage.name(), key);
-                  try {
-                     List<VMImage> images = blobHelper.getImages(CONTAINER_NAME, azureGroup, CUSTOM_IMAGE_OFFER,
-                           storage.location());
-                     osImages.addAll(images);
-                  } finally {
-                     closeQuietly(blobHelper);
-                  }
-               }
-            } catch (Exception ex) {
-               logger.warn("<< could not get custom images from storage account %s: %s", storage, ex.getMessage());
-            }
-         }
-      }
-
-      return osImages;
+      return osImages.build();
    }
 
    @Override
@@ -274,8 +255,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
 
       if (image.custom()) {
          VirtualMachineImage vmImage = api.getVirtualMachineImageApi(resourceGroup.name()).get(image.name());
-         return VMImage.customImage().id(vmImage.id()).name(vmImage.name()).location(image.location())
-               .offer(vmImage.properties().storageProfile().osDisk().osType()).build();
+         return vmImage == null ? null : customImagetoVmImage.apply(vmImage);
       }
 
       String location = image.location();
@@ -290,6 +270,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          return VMImage.azureImage().publisher(publisher).offer(offer).sku(sku).version(version.name())
                .location(location).versionProperties(version.properties()).build();
       }
+      
       return null;
    }
 
@@ -443,11 +424,10 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          vhd = VHD.create(blob + "vhds/" + name + ".vhd");
 
       } else {
-         // FIXME how to get the full providerId
          ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.getLocation().getId());
-
-         imageReference = ImageReference.builder()
-               .id(api.getVirtualMachineImageApi(resourceGroup.name()).get(image.getName()).id()).build();
+         VirtualMachineImage customImage = api.getVirtualMachineImageApi(resourceGroup.name()).get(imageRef.name());
+         
+         imageReference = ImageReference.builder().customImageId(customImage.id()).build();
 
          OsFamily osFamily = image.getOperatingSystem().getFamily();
          osType = osFamily == OsFamily.WINDOWS ? "Windows" : "Linux";

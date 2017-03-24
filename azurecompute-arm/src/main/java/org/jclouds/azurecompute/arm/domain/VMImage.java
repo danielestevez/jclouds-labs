@@ -87,18 +87,18 @@ public abstract class VMImage {
     */
    @Nullable
    public abstract String name();
+   
+   /**
+    * True if custom image
+    */
+   public abstract boolean custom();
 
    /**
     * The id of the custom image template.
     */
    @Nullable
-   public abstract String id();
+   public abstract String customImageId();
 
-   /**
-    * True if custom image
-    */
-   public abstract boolean custom();
-   
    /**
     * Extended version properties.
     */
@@ -110,11 +110,15 @@ public abstract class VMImage {
    }
    
    public static Builder azureImage() {
-      return new AutoValue_VMImage.Builder().globallyAvailable(false).custom(false);
+      return builder().globallyAvailable(false).custom(false);
    }
    
    public static Builder customImage() {
-      return new AutoValue_VMImage.Builder().globallyAvailable(false).custom(true);
+      return builder().globallyAvailable(false).custom(true);
+   }
+   
+   VMImage() {
+      
    }
    
    public abstract Builder toBuilder();
@@ -122,7 +126,7 @@ public abstract class VMImage {
    @AutoValue.Builder
    public abstract static class Builder {
 
-      public abstract Builder id(String id);
+      public abstract Builder customImageId(String id);
       public abstract Builder publisher(String published);
       public abstract Builder offer(String offer);
       public abstract Builder sku(String sku);

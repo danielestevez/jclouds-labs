@@ -38,50 +38,38 @@ import com.google.common.collect.ImmutableList;
 
 @Test(groups = "unit", testName = "VirtualMachineImageApiMockTest", singleThreaded = true)
 public class VirtualMachineImageApiMockTest extends BaseAzureComputeApiMockTest {
-   private final String subscriptionid = "SUBSCRIPTIONID";
-   private final String resourcegroup = "myresourcegroup";
-   private final String apiVersion = "api-version=2016-04-30-preview";
-   private final String imageName = "testVirtualMachineImage";
-   private final String location = "canadaeast";
+   private static final String subscriptionid = "SUBSCRIPTIONID";
+   private static final String resourcegroup = "myresourcegroup";
+   private static final String apiVersion = "api-version=2016-04-30-preview";
+   private static final String imageName = "testVirtualMachineImage";
+   private static final String location = "canadaeast";
+   
+   private static final String PATH = String
+         .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images/%s?%s", subscriptionid,
+               resourcegroup, imageName, apiVersion);
 
    public void createVirtualMachineImage() throws InterruptedException {
-      VirtualMachineImage newImage = newVirtualMachineImage();
+      server.enqueue(jsonResponse("/virtualmachineimagecreate.json"));
 
-      server.enqueue(jsonResponse("/virtualmachineimagecreate.json").setResponseCode(200));
-      final VirtualMachineImageApi machineImageApi = api.getVirtualMachineImageApi(resourcegroup);
-
-      String path = String
-            .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images/%s?%s", subscriptionid,
-                  resourcegroup, imageName, apiVersion);
-
-      //      [{"location":"canadaeast","properties":{"sourceVirtualMachine":{"id":"vmId"},
-      // "storageProfile":{"osDisk":{"osType":"Linux","name":"Ubuntu"},"dataDisks":[]},
-      // "provisioningState":"Succeeded"}}]
-
-      String json =
-            "{\"location\":\"" + location + "\"," + "\"properties\":{\"sourceVirtualMachine\":{\"id\":\"vmId\"},"
-                  + "\"storageProfile\":{\"osDisk\":{\"osType\":\"Linux\",\"name\":\"Ubuntu\"},\"dataDisks\":[]},"
-                  + "\"provisioningState\":\"Succeeded\"}}";
-
-      System.out.println("JSON: " + json);
-
-      VirtualMachineImage result = machineImageApi.create(imageName, location, newImage.properties());
-      assertSent(server, "PUT", path, json);
+      VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
+      VirtualMachineImage result = imageApi.create(imageName, location, newVirtualMachineImage().properties());
+      
+      assertSent(server, "PUT", PATH, "{\"location\":\"" + location + "\","
+            + "\"properties\":{\"sourceVirtualMachine\":{\"id\":\"vmId\"},"
+            + "\"storageProfile\":{\"osDisk\":{\"osType\":\"Linux\",\"name\":\"Ubuntu\"},\"dataDisks\":[]},"
+            + "\"provisioningState\":\"Succeeded\"}}");
 
       assertEquals(result.name(), imageName);
       assertEquals(result.location(), location);
    }
 
    public void getVirtualMachineImage() throws InterruptedException {
-      server.enqueue(jsonResponse("/virtualmachineimageget.json").setResponseCode(200));
+      server.enqueue(jsonResponse("/virtualmachineimageget.json"));
 
-      final VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
+      VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
       VirtualMachineImage result = imageApi.get(imageName);
 
-      String path = String
-            .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images/%s?%s", subscriptionid,
-                  resourcegroup, imageName, apiVersion);
-      assertSent(server, "GET", path);
+      assertSent(server, "GET", PATH);
 
       assertEquals(result.name(), imageName);
       assertEquals(result.location(), location);
@@ -95,24 +83,20 @@ public class VirtualMachineImageApiMockTest extends BaseAzureComputeApiMockTest 
       final VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
       VirtualMachineImage result = imageApi.get(imageName);
 
-      String path = String
-            .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images/%s?%s", subscriptionid,
-                  resourcegroup, imageName, apiVersion);
-      assertSent(server, "GET", path);
-
+      assertSent(server, "GET", PATH);
+      
       assertNull(result);
    }
 
    public void listVirtualMachineImages() throws InterruptedException {
-      server.enqueue(jsonResponse("/virtualmachineimagelist.json").setResponseCode(200));
+      server.enqueue(jsonResponse("/virtualmachineimagelist.json"));
 
       final VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
       List<VirtualMachineImage> result = imageApi.list();
 
-      String path = String
+      assertSent(server, "GET", String
             .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images?%s", subscriptionid,
-                  resourcegroup, apiVersion);
-      assertSent(server, "GET", path);
+                  resourcegroup, apiVersion));
 
       assertNotNull(result);
       assertTrue(result.size() > 0);
@@ -124,10 +108,9 @@ public class VirtualMachineImageApiMockTest extends BaseAzureComputeApiMockTest 
       final VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
       List<VirtualMachineImage> result = imageApi.list();
 
-      String path = String
+      assertSent(server, "GET", String
             .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images?%s", subscriptionid,
-                  resourcegroup, apiVersion);
-      assertSent(server, "GET", path);
+                  resourcegroup, apiVersion));
 
       assertTrue(isEmpty(result));
    }
@@ -138,14 +121,9 @@ public class VirtualMachineImageApiMockTest extends BaseAzureComputeApiMockTest 
       final VirtualMachineImageApi imageApi = api.getVirtualMachineImageApi(resourcegroup);
       URI uri = imageApi.delete(imageName);
 
-      assertEquals(server.getRequestCount(), 1);
+      assertSent(server, "DELETE", PATH);
+
       assertNotNull(uri);
-
-      String path = String
-            .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images/%s?%s", subscriptionid,
-                  resourcegroup, imageName, apiVersion);
-      assertSent(server, "DELETE", path);
-
       assertTrue(uri.toString().contains("api-version"));
       assertTrue(uri.toString().contains("operationresults"));
    }
@@ -157,10 +135,7 @@ public class VirtualMachineImageApiMockTest extends BaseAzureComputeApiMockTest 
       URI uri = imageApi.delete(imageName);
       assertNull(uri);
 
-      String path = String
-            .format("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Compute/images/%s?%s", subscriptionid,
-                  resourcegroup, imageName, apiVersion);
-      assertSent(server, "DELETE", path);
+      assertSent(server, "DELETE", PATH);
    }
 
    private VirtualMachineImage newVirtualMachineImage() {

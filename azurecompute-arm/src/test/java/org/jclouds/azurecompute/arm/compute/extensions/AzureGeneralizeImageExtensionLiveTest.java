@@ -17,7 +17,6 @@
 package org.jclouds.azurecompute.arm.compute.extensions;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.jclouds.compute.options.RunScriptOptions.Builder.overrideAuthenticateSudo;
 import static org.jclouds.compute.options.TemplateOptions.Builder.authorizePublicKey;
 import static org.jclouds.util.Predicates2.retry;
 import static org.testng.Assert.assertEquals;
@@ -27,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+
 import javax.annotation.Resource;
 import javax.inject.Named;
 
@@ -72,7 +72,7 @@ public class AzureGeneralizeImageExtensionLiveTest extends BaseComputeServiceCon
 
    public static final String NAME_PREFIX = "%s";
 
-   private String imageId;//= "eastus/testimage";
+   private String imageId;
 
    private String imageGroup = "testimage2";
 

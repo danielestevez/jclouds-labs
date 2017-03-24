@@ -18,6 +18,7 @@ package org.jclouds.azurecompute.arm.features;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.any;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.TIMEOUT_RESOURCE_DELETED;
 import static org.jclouds.compute.predicates.NodePredicates.inGroup;
 import static org.testng.Assert.assertNotNull;
@@ -25,13 +26,10 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import org.jclouds.azurecompute.arm.AzureComputeApi;
 import org.jclouds.azurecompute.arm.domain.IdReference;
-import org.jclouds.azurecompute.arm.domain.Provisionable;
 import org.jclouds.azurecompute.arm.domain.ResourceGroup;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineImage;
 import org.jclouds.azurecompute.arm.domain.VirtualMachineImageProperties;
@@ -45,7 +43,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
@@ -55,15 +52,10 @@ import com.google.inject.name.Names;
 @Test(groups = "live", singleThreaded = true)
 public class VirtualMachineImageApiLiveTest extends BaseComputeServiceContextLiveTest {
 
-   //   private static final String imageName = String
-   //         .format("image-%s-%s", VirtualMachineImageApiLiveTest.class.getSimpleName().toLowerCase(),
-   //               System.getProperty("user.name"));
-   //
    private static final String imageName = "imageFromRest";
 
    private LoadingCache<String, ResourceGroup> resourceGroupMap;
    private Predicate<URI> resourceDeleted;
-   private Predicate<Supplier<Provisionable>> resourceAvailable;
    private AzureComputeApi api;
 
    private String resourceGroupName;
@@ -94,9 +86,6 @@ public class VirtualMachineImageApiLiveTest extends BaseComputeServiceContextLiv
       resourceGroupMap = context.utils().injector()
             .getInstance(Key.get(new TypeLiteral<LoadingCache<String, ResourceGroup>>() {
             }));
-      resourceAvailable = context.utils().injector()
-            .getInstance(Key.get(new TypeLiteral<Predicate<Supplier<Provisionable>>>() {
-            }));
       api = view.unwrapApi(AzureComputeApi.class);
    }
 
@@ -104,8 +93,7 @@ public class VirtualMachineImageApiLiveTest extends BaseComputeServiceContextLiv
    @BeforeClass
    public void setupContext() {
       super.setupContext();
-      // Use the resource name conventions used in the abstraction so the nodes
-      // can see the load balancer
+      // Use the resource name conventions used in the abstraction
       ResourceGroup resourceGroup = createResourceGroup();
       resourceGroupName = resourceGroup.name();
       location = resourceGroup.location();
@@ -129,37 +117,26 @@ public class VirtualMachineImageApiLiveTest extends BaseComputeServiceContextLiv
 
    @Test
    public void testDeleteImageDoesNotExist() {
-      URI uri = imageApi.delete("notAnImage");
-      assertNull(uri);
+      assertNull(imageApi.delete("notAnImage"));
    }
 
-   @Test(dependsOnMethods = "testDeleteImageDoesNotExist")
+   @Test
    public void testCreateImage() throws RunNodesException {
-
-      Set<? extends NodeMetadata> nodes = view.getComputeService().createNodesInGroup(group, 1);
-
-      NodeMetadata node = nodes.iterator().next();
+      NodeMetadata node = getOnlyElement(view.getComputeService().createNodesInGroup(group, 1));
       IdReference vmIdRef = IdReference.create(node.getProviderId());
       view.getComputeService().suspendNode(node.getId());
 
-      VirtualMachineApi vmApi = view.unwrapApi(AzureComputeApi.class).getVirtualMachineApi(resourceGroupName);
-      vmApi.generalize(node.getName());
+      api.getVirtualMachineApi(resourceGroupName).generalize(node.getName());
 
-      image = imageApi
-            .create(imageName, location, VirtualMachineImageProperties.builder().sourceVirtualMachine(vmIdRef).build());
+      image = imageApi.create(imageName, location, VirtualMachineImageProperties.builder()
+            .sourceVirtualMachine(vmIdRef).build());
       assertNotNull(image);
    }
 
    @Test(dependsOnMethods = "testCreateImage")
    public void testListImages() {
-      List<VirtualMachineImage> result = imageApi.list();
-
-      // Verify we have something
-      assertNotNull(result);
-      assertTrue(result.size() > 0);
-
-      // Check that the load balancer matches the one we originally passed in
-      assertTrue(any(result, new Predicate<VirtualMachineImage>() {
+      // Check that the image we've just created exists
+      assertTrue(any(imageApi.list(), new Predicate<VirtualMachineImage>() {
          @Override
          public boolean apply(VirtualMachineImage input) {
             return image.name().equals(input.name());
@@ -169,24 +146,20 @@ public class VirtualMachineImageApiLiveTest extends BaseComputeServiceContextLiv
 
    @Test(dependsOnMethods = "testCreateImage")
    public void testGetImage() {
-      image = imageApi.get(imageName);
-      assertNotNull(image);
+      assertNotNull(imageApi.get(imageName));
    }
 
-   @Test(dependsOnMethods = { "testCreateImage", "testListImages", "testGetImage" }, enabled = false, alwaysRun = true)
+   @Test(dependsOnMethods = { "testCreateImage", "testListImages", "testGetImage" }, alwaysRun = true)
    public void deleteImage() {
-      URI uri = imageApi.delete(imageName);
-      assertResourceDeleted(uri);
+      assertResourceDeleted(imageApi.delete(imageName));
    }
-
 
    private void assertResourceDeleted(final URI uri) {
       if (uri != null) {
          assertTrue(resourceDeleted.apply(uri),
-               String.format("Resource %s was not terminated in the configured timeout", uri));
+               String.format("Resource %s was not deleted in the configured timeout", uri));
       }
    }
-
 
    private ResourceGroup createResourceGroup() {
       Location location = view.getComputeService().templateBuilder().build().getLocation();

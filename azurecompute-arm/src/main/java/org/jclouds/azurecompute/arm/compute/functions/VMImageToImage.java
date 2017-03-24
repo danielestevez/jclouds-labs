@@ -59,6 +59,11 @@ public class VMImageToImage implements Function<VMImage, Image> {
       return (globallyAvailable ? "global" : locatioName) + "/" + imageReference.publisher() + "/"
             + imageReference.offer() + "/" + imageReference.sku();
    }
+   
+   public static String encodeFieldsToUniqueIdCustom(boolean globallyAvailable, String locatioName,
+         ImageReference imageReference) {
+      return (globallyAvailable ? "global" : locatioName) + "/" + imageReference.customImageId();
+   }
 
    public static String encodeFieldsToUniqueId(VMImage imageReference) {
       return (imageReference.globallyAvailable() ? "global" : imageReference.location()) + "/"
@@ -67,11 +72,6 @@ public class VMImageToImage implements Function<VMImage, Image> {
 
    public static String encodeFieldsToUniqueIdCustom(VMImage imageReference) {
       return (imageReference.globallyAvailable() ? "global" : imageReference.location()) + "/" + imageReference.name();
-   }
-
-   public static String encodeFieldsToUniqueIdCustom(boolean globallyAvailable, String locatioName,
-         ImageReference imageReference) {
-      return (globallyAvailable ? "global" : locatioName) + "/" + imageReference.id();
    }
 
    public static VMImage decodeFieldsFromUniqueId(final String id) {
@@ -98,7 +98,7 @@ public class VMImageToImage implements Function<VMImage, Image> {
    }
 
    @Inject
-   VMImageToImage(@Memoized final Supplier<Set<? extends Location>> locations) {
+   VMImageToImage(@Memoized Supplier<Set<? extends Location>> locations) {
       this.locations = locations;
    }
 
@@ -110,7 +110,7 @@ public class VMImageToImage implements Function<VMImage, Image> {
          builder.location(
                      FluentIterable.from(locations.get()).firstMatch(LocationPredicates.idEquals(image.location()))
                            .get()).name(image.name()).description(image.group()).status(Image.Status.AVAILABLE)
-               .version("latest").providerId(image.id()).id(encodeFieldsToUniqueIdCustom(image));
+               .version("latest").providerId(image.customImageId()).id(encodeFieldsToUniqueIdCustom(image));
 
          final OperatingSystem.Builder osBuilder = osFamily().apply(image);
          builder.operatingSystem(osBuilder.build());
