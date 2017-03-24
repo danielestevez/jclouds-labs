@@ -54,15 +54,16 @@ public class VMImageToImage implements Function<VMImage, Image> {
 
    private final Supplier<Set<? extends org.jclouds.domain.Location>> locations;
 
-   public static String encodeFieldsToUniqueId(boolean globallyAvailable, String locatioName,
+   public static String encodeFieldsToUniqueId(boolean globallyAvailable, String locationName,
          ImageReference imageReference) {
-      return (globallyAvailable ? "global" : locatioName) + "/" + imageReference.publisher() + "/"
+      return (globallyAvailable ? "global" : locationName) + "/" + imageReference.publisher() + "/"
             + imageReference.offer() + "/" + imageReference.sku();
    }
-   
-   public static String encodeFieldsToUniqueIdCustom(boolean globallyAvailable, String locatioName,
+
+   public static String encodeFieldsToUniqueIdCustom(boolean globallyAvailable, String locationName,
          ImageReference imageReference) {
-      return (globallyAvailable ? "global" : locatioName) + "/" + imageReference.customImageId();
+      return (globallyAvailable ? "global" : locationName) + "/" + imageReference.customImageId()
+            .substring(imageReference.customImageId().lastIndexOf("/") + 1);
    }
 
    public static String encodeFieldsToUniqueId(VMImage imageReference) {
