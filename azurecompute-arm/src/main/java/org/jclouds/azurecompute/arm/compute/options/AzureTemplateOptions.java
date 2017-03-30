@@ -16,12 +16,12 @@
  */
 package org.jclouds.azurecompute.arm.compute.options;
 
+import static com.google.common.base.Objects.equal;
+
 import org.jclouds.azurecompute.arm.domain.AvailabilitySet;
 import org.jclouds.compute.options.TemplateOptions;
 
 import com.google.common.base.Objects;
-
-import static com.google.common.base.Objects.equal;
 
 /**
  * Azure ARM custom options
@@ -33,6 +33,15 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    private String blob;
    private AvailabilitySet availabilitySet;
    private String availabilitySetName;
+   private String resourceGroupName;
+
+   /**
+    * Sets the virtual network name
+    */
+   public  AzureTemplateOptions resourceGroupName(String resourceGroupName) {
+      this.resourceGroupName = resourceGroupName;
+      return this;
+   }
 
    /**
     * Sets the virtual network name
@@ -81,6 +90,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
    public String getBlob() { return blob; }
    public AvailabilitySet getAvailabilitySet() { return availabilitySet; }
    public String getAvailabilitySetName() { return availabilitySetName; }
+   public String getResourceGroupName() { return resourceGroupName; }
 
 
    @Override
@@ -100,6 +110,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
          eTo.blob(blob);
          eTo.availabilitySet(availabilitySet);
          eTo.availabilitySet(availabilitySetName);
+         eTo.resourceGroupName(resourceGroupName);
       }
    }
 
@@ -126,7 +137,9 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
             && equal(this.subnetId, other.subnetId)
             && equal(this.blob, other.blob)
             && equal(this.availabilitySet, other.availabilitySet)
-            && equal(this.availabilitySetName, other.availabilitySetName);
+            && equal(this.availabilitySetName, other.availabilitySetName)
+            && equal(this.resourceGroupName, other.resourceGroupName);
+
    }
 
    @Override
@@ -137,6 +150,7 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
       toString.add("blob", blob);
       toString.add("availabilitySet", availabilitySet);
       toString.add("availabilitySetName", availabilitySetName);
+      toString.add("resourceGroupName", resourceGroupName);
       return toString;
    }
 
@@ -180,6 +194,14 @@ public class AzureTemplateOptions extends TemplateOptions implements Cloneable {
       public static AzureTemplateOptions availabilitySet(String availabilitySetName) {
          AzureTemplateOptions options = new AzureTemplateOptions();
          return options.availabilitySet(availabilitySetName);
+      }
+
+      /**
+       * @see AzureTemplateOptions#resourceGroupName(String)
+       */
+      public static AzureTemplateOptions resourceGroupName(String resourceGroupName) {
+         AzureTemplateOptions options = new AzureTemplateOptions();
+         return options.resourceGroupName(resourceGroupName);
       }
    }
 }

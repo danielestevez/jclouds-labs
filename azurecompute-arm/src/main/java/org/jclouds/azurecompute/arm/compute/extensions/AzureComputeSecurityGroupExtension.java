@@ -29,7 +29,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -56,6 +55,7 @@ import org.jclouds.compute.domain.SecurityGroupBuilder;
 import org.jclouds.compute.extensions.SecurityGroupExtension;
 import org.jclouds.compute.reference.ComputeServiceConstants;
 import org.jclouds.domain.Location;
+import org.jclouds.domain.LocationScope;
 import org.jclouds.logging.Logger;
 import org.jclouds.net.domain.IpPermission;
 import org.jclouds.net.domain.IpProtocol;
@@ -154,16 +154,28 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
 
    @Override
    public SecurityGroup createSecurityGroup(String name, Location location) {
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(location.getId());
+      String resourceGroupName = null;
+      Location region = null;
+      if (location.getScope().equals(LocationScope.REGION)){
+         resourceGroupName = resourceGroupMap.getUnchecked(location.getId()).name();
+         region = location;
+      } else if (location.getScope().equals(LocationScope.HOST) && location.getParent() != null && location.getParent().getScope().equals
+          (LocationScope.REGION)){
+         resourceGroupName = location.getId();
+         region = location.getParent();
+      } else {
+         throw new IllegalArgumentException("Security group location" + location + " was not found");
+      }
+
 
       logger.debug(">> creating security group %s in %s...", name, location);
 
       SecurityGroupBuilder builder = new SecurityGroupBuilder();
       builder.name(name);
-      builder.location(location);
+      builder.location(region);
 
-      return securityGroupConverter.apply(api.getNetworkSecurityGroupApi(resourceGroup.name()).createOrUpdate(name,
-            location.getId(), null, NetworkSecurityGroupProperties.builder().build()));
+      return securityGroupConverter.apply(api.getNetworkSecurityGroupApi(resourceGroupName).createOrUpdate(name,
+            region.getId(), null, NetworkSecurityGroupProperties.builder().build()));
    }
 
    @Override
