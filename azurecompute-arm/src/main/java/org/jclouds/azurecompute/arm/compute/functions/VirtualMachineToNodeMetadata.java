@@ -17,6 +17,7 @@
 package org.jclouds.azurecompute.arm.compute.functions;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Iterables.find;
 import static com.google.common.collect.Iterables.tryFind;
@@ -107,10 +108,11 @@ public class VirtualMachineToNodeMetadata implements Function<VirtualMachine, No
 
    @Override
    public NodeMetadata apply(VirtualMachine virtualMachine) {
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(virtualMachine.location());
+      String[] fields = checkNotNull(virtualMachine.id(), "id").split("/");
+      String resourceGroupName = fields[4]; // /subscriptions/[SUBID]/resourceGroups/[RGNAME]/providers/Microsoft.Compute/virtualMachines/[VMNAME]
 
       NodeMetadataBuilder builder = new NodeMetadataBuilder();
-      builder.id(RegionScopeId.fromRegionScopeId(virtualMachine.location(), resourceGroup.name(), virtualMachine.name())
+      builder.id(RegionScopeId.fromRegionScopeId(virtualMachine.location(), resourceGroupName, virtualMachine.name())
             .slashEncode());
       builder.providerId(virtualMachine.id());
       builder.name(virtualMachine.name());
@@ -138,7 +140,7 @@ public class VirtualMachineToNodeMetadata implements Function<VirtualMachine, No
       builder.location(getLocation(locations, locationName));
 
       Optional<? extends Image> image = findImage(virtualMachine.properties().storageProfile(), locationName,
-            resourceGroup.name());
+            resourceGroupName);
       
       if (image.isPresent()) {
          builder.imageId(image.get().getId());

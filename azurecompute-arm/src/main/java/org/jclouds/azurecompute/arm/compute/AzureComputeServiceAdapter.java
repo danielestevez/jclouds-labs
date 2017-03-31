@@ -16,10 +16,23 @@
  */
 package org.jclouds.azurecompute.arm.compute;
 
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.contains;
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.find;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CONTAINER_NAME;
+import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CUSTOM_IMAGE_OFFER;
+import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.decodeFieldsFromUniqueId;
+import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueIdCustom;
+import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.getMarketplacePlanFromImageMetadata;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.IMAGE_PUBLISHERS;
+import static org.jclouds.compute.util.ComputeServiceUtils.metadataAndTagsAsCommaDelimitedValue;
+import static org.jclouds.util.Closeables2.closeQuietly;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -84,20 +97,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Iterables.contains;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.find;
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CONTAINER_NAME;
-import static org.jclouds.azurecompute.arm.compute.extensions.AzureComputeImageExtension.CUSTOM_IMAGE_OFFER;
-import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.decodeFieldsFromUniqueId;
-import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.encodeFieldsToUniqueIdCustom;
-import static org.jclouds.azurecompute.arm.compute.functions.VMImageToImage.getMarketplacePlanFromImageMetadata;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.IMAGE_PUBLISHERS;
-import static org.jclouds.compute.util.ComputeServiceUtils.metadataAndTagsAsCommaDelimitedValue;
-import static org.jclouds.util.Closeables2.closeQuietly;
-
 /**
  * Defines the connection between the {@link AzureComputeApi} implementation and
  * the jclouds {@link org.jclouds.compute.ComputeService}.
@@ -135,7 +134,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
          final String name, final Template template) {
 
       AzureTemplateOptions templateOptions = template.getOptions().as(AzureTemplateOptions.class);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(template.getLocation().getId());
+      String resourceGroupName = templateOptions.getResourceGroupName();
 
       // TODO ARM specific options
       // TODO network ids => createOrUpdate one nic in each network
@@ -150,7 +149,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
                                                             // API
                                                             // inconsistences
       String subnetId = templateOptions.getSubnetId();
-      NetworkInterfaceCard nic = createNetworkInterfaceCard(subnetId, name, locationName, resourceGroup.name(),
+      NetworkInterfaceCard nic = createNetworkInterfaceCard(subnetId, name, locationName, resourceGroupName,
             template.getOptions());
       StorageProfile storageProfile = createStorageProfile(name, template.getImage(), templateOptions.getBlob());
       HardwareProfile hardwareProfile = HardwareProfile.builder().vmSize(template.getHardware().getId()).build();
@@ -169,14 +168,14 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
       Map<String, String> metadataAndTags = metadataAndTagsAsCommaDelimitedValue(template.getOptions());
       Plan plan = getMarketplacePlanFromImageMetadata(template.getImage());
 
-      VirtualMachine virtualMachine = api.getVirtualMachineApi(resourceGroup.name()).createOrUpdate(name, template.getLocation().getId(),
+      VirtualMachine virtualMachine = api.getVirtualMachineApi(resourceGroupName).createOrUpdate(name, template.getLocation().getId(),
             virtualMachineProperties, metadataAndTags, plan);
 
       // Safe to pass null credentials here, as jclouds will default populate
       // the node with the default credentials from the image, or the ones in
       // the options, if provided.
       RegionScopeId regionScopeId = RegionScopeId.fromRegionScopeId(template.getLocation().getId(),
-            resourceGroup.name(),
+          resourceGroupName,
             name);
       return new NodeAndInitialCredentials<VirtualMachine>(virtualMachine, regionScopeId.slashEncode(), null);
    }
@@ -268,7 +267,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
    @Override
    public VMImage getImage(final String id) {
       VMImage image = decodeFieldsFromUniqueId(id);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.location());
+      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(image.location()); //FIXME in imageExtensionPR
 
       if (image.custom()) {
          VMImage customImage = null;

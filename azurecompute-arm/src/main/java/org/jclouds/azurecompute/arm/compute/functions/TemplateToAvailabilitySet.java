@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -62,17 +61,17 @@ public class TemplateToAvailabilitySet implements Function<Template, Availabilit
 
       AvailabilitySet availabilitySet = null;
       String location = input.getLocation().getId();
-      String resourceGroup = resourceGroupMap.getUnchecked(location).name();
+      String resourceGroupName = options.getResourceGroupName();
 
       if (options.getAvailabilitySetName() != null) {
-         availabilitySet = api.getAvailabilitySetApi(resourceGroup).get(options.getAvailabilitySetName());
+         availabilitySet = api.getAvailabilitySetApi(resourceGroupName).get(options.getAvailabilitySetName());
 
          checkArgument(availabilitySet != null, "No availability set with name '%s' was found", options.getAvailabilitySetName());
          checkArgument(location.equals(availabilitySet.location()), "The availability set %s does not belong to location %s",
                options.getAvailabilitySetName(), location);
 
       } else if (options.getAvailabilitySet() != null) {
-         availabilitySet = api.getAvailabilitySetApi(resourceGroup).get(options.getAvailabilitySet().name());
+         availabilitySet = api.getAvailabilitySetApi(resourceGroupName).get(options.getAvailabilitySet().name());
 
          if (availabilitySet != null) {
             checkArgument(location.equals(availabilitySet.location()), "The availability set %s does not belong to location %s",
@@ -86,7 +85,7 @@ public class TemplateToAvailabilitySet implements Function<Template, Availabilit
 
             logger.debug(">> creating availability set [%s]", options.getAvailabilitySet().name());
 
-            availabilitySet = api.getAvailabilitySetApi(resourceGroup).createOrUpdate(
+            availabilitySet = api.getAvailabilitySetApi(resourceGroupName).createOrUpdate(
                   options.getAvailabilitySet().name(), location, tags, options.getAvailabilitySet().properties());
          }
       }
