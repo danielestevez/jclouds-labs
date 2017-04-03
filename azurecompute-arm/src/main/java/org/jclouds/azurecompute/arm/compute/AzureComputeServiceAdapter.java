@@ -344,8 +344,7 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
    @Override
    public VirtualMachine getNode(final String id) {
       RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
-      return api.getVirtualMachineApi(resourceGroup.name()).get(regionAndId.id());
+      return api.getVirtualMachineApi(regionAndId.scope()).get(regionAndId.id());
    }
 
    @Override
@@ -356,22 +355,19 @@ public class AzureComputeServiceAdapter implements ComputeServiceAdapter<Virtual
    @Override
    public void rebootNode(final String id) {
       RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
-      api.getVirtualMachineApi(resourceGroup.name()).restart(regionAndId.id());
+      api.getVirtualMachineApi(regionAndId.scope()).restart(regionAndId.id());
    }
 
    @Override
    public void resumeNode(final String id) {
       RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
-      api.getVirtualMachineApi(resourceGroup.name()).start(regionAndId.id());
+      api.getVirtualMachineApi(regionAndId.scope()).start(regionAndId.id());
    }
 
    @Override
    public void suspendNode(final String id) {
       RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
-      api.getVirtualMachineApi(resourceGroup.name()).stop(regionAndId.id());
+      api.getVirtualMachineApi(regionAndId.scope()).stop(regionAndId.id());
    }
 
    @Override

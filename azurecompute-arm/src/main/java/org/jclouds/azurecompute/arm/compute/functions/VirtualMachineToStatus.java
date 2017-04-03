@@ -16,6 +16,7 @@
  */
 package org.jclouds.azurecompute.arm.compute.functions;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.transform;
 
 import javax.inject.Inject;
@@ -90,7 +91,8 @@ public class VirtualMachineToStatus implements Function<VirtualMachine, StatusAn
 
    @Override
    public StatusAndBackendStatus apply(VirtualMachine virtualMachine) {
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(virtualMachine.location());
+      String[] fields = checkNotNull(virtualMachine.id(), "id").split("/");
+      String resourceGroupName = fields[4]; // /subscriptions/[SUBID]/resourceGroups/[RGNAME]/providers/
       ProvisioningState provisioningState = virtualMachine.properties().provisioningState();
 
       NodeMetadata.Status status = PROVISIONINGSTATE_TO_NODESTATUS.apply(provisioningState);
@@ -99,7 +101,7 @@ public class VirtualMachineToStatus implements Function<VirtualMachine, StatusAn
       if (ProvisioningState.SUCCEEDED.equals(provisioningState)) {
          // If the provisioning succeeded, we need to query the *real* status of
          // the VM
-         VirtualMachineInstance instanceDetails = api.getVirtualMachineApi(resourceGroup.name()).getInstanceDetails(
+         VirtualMachineInstance instanceDetails = api.getVirtualMachineApi(resourceGroupName).getInstanceDetails(
                virtualMachine.name());
          if (instanceDetails != null && instanceDetails.powerState() != null) {
             status = POWERSTATE_TO_NODESTATUS.apply(instanceDetails.powerState());
