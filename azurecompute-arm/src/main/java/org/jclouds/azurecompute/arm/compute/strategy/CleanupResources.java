@@ -16,9 +16,14 @@
  */
 package org.jclouds.azurecompute.arm.compute.strategy;
 
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.transform;
+import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.TIMEOUT_RESOURCE_DELETED;
+import static org.jclouds.util.Closeables2.closeQuietly;
+
 import java.net.URI;
 import java.util.List;
-
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -48,12 +53,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
-import static com.google.common.base.Predicates.notNull;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.transform;
-import static org.jclouds.azurecompute.arm.config.AzureComputeProperties.TIMEOUT_RESOURCE_DELETED;
-import static org.jclouds.util.Closeables2.closeQuietly;
-
 @Singleton
 public class CleanupResources {
 
@@ -80,8 +79,8 @@ public class CleanupResources {
 
    public boolean cleanupNode(final String id) {
       RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(id);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
-      String resourceGroupName = resourceGroup.name();
+//      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
+      String resourceGroupName = regionAndId.scope();
 
       VirtualMachine virtualMachine = api.getVirtualMachineApi(resourceGroupName).get(regionAndId.id());
       if (virtualMachine == null) {

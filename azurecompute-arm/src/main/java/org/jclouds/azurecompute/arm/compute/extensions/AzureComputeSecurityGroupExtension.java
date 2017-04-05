@@ -120,9 +120,9 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
       logger.debug(">> getting security groups for node %s...", nodeId);
 
       final RegionScopeId regionAndId = RegionScopeId.fromSlashEncoded(nodeId);
-      ResourceGroup resourceGroup = resourceGroupMap.getUnchecked(regionAndId.region());
+      String resourceGroupName = regionAndId.scope();
 
-      VirtualMachine vm = api.getVirtualMachineApi(resourceGroup.name()).get(regionAndId.id());
+      VirtualMachine vm = api.getVirtualMachineApi(resourceGroupName).get(regionAndId.id());
       if (vm == null) {
          throw new IllegalArgumentException("Node " + regionAndId.id() + " was not found");
       }
@@ -131,11 +131,11 @@ public class AzureComputeSecurityGroupExtension implements SecurityGroupExtensio
 
       for (IdReference networkInterfaceCardIdReference : networkInterfacesIdReferences) {
          String nicName = Iterables.getLast(Splitter.on("/").split(networkInterfaceCardIdReference.id()));
-         NetworkInterfaceCard card = api.getNetworkInterfaceCardApi(resourceGroup.name()).get(nicName);
+         NetworkInterfaceCard card = api.getNetworkInterfaceCardApi(resourceGroupName).get(nicName);
          if (card != null && card.properties().networkSecurityGroup() != null) {
             String secGroupName = Iterables.getLast(Splitter.on("/").split(
                   card.properties().networkSecurityGroup().id()));
-            NetworkSecurityGroup group = api.getNetworkSecurityGroupApi(resourceGroup.name()).get(secGroupName);
+            NetworkSecurityGroup group = api.getNetworkSecurityGroupApi(resourceGroupName).get(secGroupName);
             networkGroups.add(group);
          }
       }
