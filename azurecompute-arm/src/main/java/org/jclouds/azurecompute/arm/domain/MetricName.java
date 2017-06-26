@@ -16,36 +16,23 @@
  */
 package org.jclouds.azurecompute.arm.domain;
 
-import java.util.List;
-
-import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.json.SerializedNames;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 
 /**
  * A Metric with its values for a resource
  */
 @AutoValue
-public abstract class Metric {
+public abstract class MetricName {
 
-   public abstract List<MetricData> data();
+   public abstract String value();
 
-   public abstract String id();
+   public abstract String localizedValue();
 
-   @Nullable
-   public abstract MetricName name();
-
-   public abstract String type();
-
-   public abstract String unit();
-
-   @SerializedNames({ "data", "id", "name", "type", "unit" })
-   public static Metric create(final List<MetricData> data, final String id, final MetricName name, final String type,
-         final String unit) {
-      return new AutoValue_Metric(data == null ? ImmutableList.<MetricData> of() : ImmutableList.copyOf(data), id, name,
-            type, unit);
+   @SerializedNames({ "value", "localizedValue" })
+   public static MetricName create(String value, String localizedValue) {
+      return new AutoValue_MetricName(value, localizedValue);
    }
 
 }

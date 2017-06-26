@@ -24,6 +24,7 @@ import static org.jclouds.compute.predicates.NodePredicates.inGroup;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -94,14 +95,14 @@ public class MetricsApiLiveTest extends BaseComputeServiceContextLiveTest {
       try {
          node = getOnlyElement(view.getComputeService().createNodesInGroup(group, 1, resourceGroup(group)));
       } catch (RunNodesException e) {
-         e.printStackTrace();
+         fail();
       }
-      String resourceid = String.format("/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s",
+      String resourceId = String.format("/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s",
             IdReference.extractResourceGroup(node.getProviderId()), IdReference.extractName(node.getProviderId()));
 
       location = view.getComputeService().templateBuilder().build().getLocation().getId();
       view.unwrapApi(AzureComputeApi.class).getResourceGroupApi().create(group, location, null);
-      metricsApi = api.getMetricsApi(resourceid);
+      metricsApi = api.getMetricsApi(resourceId);
    }
 
    @Override

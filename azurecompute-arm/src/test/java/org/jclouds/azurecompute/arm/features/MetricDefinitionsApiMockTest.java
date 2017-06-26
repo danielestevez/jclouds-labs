@@ -20,6 +20,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.jclouds.azurecompute.arm.domain.MetricDefinition;
+import org.jclouds.azurecompute.arm.domain.MetricName;
 import org.jclouds.azurecompute.arm.internal.BaseAzureComputeApiMockTest;
 import org.testng.annotations.Test;
 
@@ -35,14 +36,16 @@ public class MetricDefinitionsApiMockTest extends BaseAzureComputeApiMockTest {
    public void testList() throws Exception {
       server.enqueue(jsonResponse("/metricdefinitions.json"));
       final MetricDefinitionsApi metricDefinitionsApi = api.getMetricsDefinitionsApi(resourceId);
-      assertEquals(metricDefinitionsApi.list(filter), ImmutableList.of(MetricDefinition
-            .create(null, MetricDefinition.MetricName.create("Percentage CPU", "Percentage CPU"), Boolean.FALSE,
-                  "Percent", "Average", ImmutableList.<MetricDefinition.MetricAvailability> of(
-                        MetricDefinition.MetricAvailability.create("PT1M", "P30D"),
-                        MetricDefinition.MetricAvailability.create("PT1H", "P30D")),
-                  "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourcegroup/providers"
-                        + "/Microsoft.Compute/virtualMachines/myvm/providers/microsoft"
-                        + ".insights/metricdefinitions/Percentage " + "CPU")));
+      assertEquals(metricDefinitionsApi.list(filter), ImmutableList.of(MetricDefinition.create(
+            "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourcegroup/providers/Microsoft"
+                  + ".Compute/virtualMachines/myvm", MetricName.create("Percentage CPU", "Percentage CPU"),
+            Boolean.FALSE, "Percent", MetricDefinition.AggregationType.Average,
+            ImmutableList.<MetricDefinition.MetricAvailability> of(
+                  MetricDefinition.MetricAvailability.create("PT1M", "P30D"),
+                  MetricDefinition.MetricAvailability.create("PT1H", "P30D")),
+            "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourcegroup/providers"
+                  + "/Microsoft.Compute/virtualMachines/myvm/providers/microsoft"
+                  + ".insights/metricdefinitions/Percentage " + "CPU")));
       assertSent(server, "GET", "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourceGroup/providers/Microsoft"
             + ".Compute/virtualMachines/myvm/providers/microsoft.insights/metricdefinitions?$filter=%28name"
             + ".value%20eq%20%27Percentage%20CPU%27%29&api-version=2017-05-01-preview");

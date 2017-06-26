@@ -25,6 +25,7 @@ import java.util.Locale;
 
 import org.jclouds.azurecompute.arm.domain.Metric;
 import org.jclouds.azurecompute.arm.domain.MetricData;
+import org.jclouds.azurecompute.arm.domain.MetricName;
 import org.jclouds.azurecompute.arm.internal.BaseAzureComputeApiMockTest;
 import org.testng.annotations.Test;
 
@@ -47,7 +48,7 @@ public class MetricsApiMockTest extends BaseAzureComputeApiMockTest {
                         null)),
             "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourcegroup/providers"
                   + "/Microsoft.Compute/virtualMachines/myvm/providers/Microsoft.Insights/metrics/Percentage CPU",
-            Metric.MetricName.create("Percentage CPU", "Percentage CPU"), "Microsoft.Insights/metrics", "Percent")));
+            MetricName.create("Percentage CPU", "Percentage CPU"), "Microsoft.Insights/metrics", "Percent")));
       assertSent(server, "GET", "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourceGroup/providers/Microsoft"
             + ".Compute/virtualMachines/myvm/providers/microsoft.insights/metrics?$filter=%28name"
             + ".value%20eq%20%27Percentage%20CPU%27%29%20and%20startTime%20eq%202017-06-01T11%3A14%3A00Z%20and"
