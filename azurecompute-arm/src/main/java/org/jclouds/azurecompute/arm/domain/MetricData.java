@@ -27,46 +27,48 @@ import com.google.auto.value.AutoValue;
  *
  */
 @AutoValue
-public abstract class MetricData {
+public abstract class MetricData
+{
 
-   /**
-    * The timestamp for the metric value in ISO 8601 format.
-    */
-   public abstract Date timeStamp();
+    /**
+     * The timestamp for the metric value in ISO 8601 format.
+     */
+    public abstract Date timeStamp();
 
-   /**
-    * The average value in the time range
-    */
-   @Nullable
-   public abstract String total();
+    /**
+     * The average value in the time range
+     */
+    @Nullable
+    public abstract Double total();
 
-   /**
-    * The sum of all of the values in the time range.
-    */
-   @Nullable
-   public abstract String average();
+    /**
+     * The sum of all of the values in the time range.
+     */
+    @Nullable
+    public abstract Double average();
 
-   /**
-    * The least value in the time range.
-    */
-   @Nullable
-   public abstract String minimum();
+    /**
+     * The least value in the time range.
+     */
+    @Nullable
+    public abstract Double minimum();
 
-   /**
-    * The greatest value in the time range.
-    */
-   @Nullable
-   public abstract String maximum();
+    /**
+     * The greatest value in the time range.
+     */
+    @Nullable
+    public abstract Double maximum();
 
-   /**
-    * The number of samples in the time range.
-    */
-   @Nullable
-   public abstract String count();
+    /**
+     * The number of samples in the time range.
+     */
+    @Nullable
+    public abstract Long count();
 
-   @SerializedNames({ "timeStamp", "total", "average", "minimum", "maximum", "count" })
-   public static MetricData create(final Date timeStamp, final String total, final String average, final String minimum,
-         final String maximum, final String count) {
-      return new AutoValue_MetricData(timeStamp, total, average, minimum, maximum, count);
-   }
+    @SerializedNames({"timeStamp", "total", "average", "minimum", "maximum", "count"})
+    public static MetricData create(final Date timeStamp, final Double total, final Double average,
+        final Double minimum, final Double maximum, final Long count)
+    {
+        return new AutoValue_MetricData(timeStamp, total, average, minimum, maximum, count);
+    }
 }

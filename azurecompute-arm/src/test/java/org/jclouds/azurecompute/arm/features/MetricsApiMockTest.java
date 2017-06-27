@@ -44,8 +44,8 @@ public class MetricsApiMockTest extends BaseAzureComputeApiMockTest {
       final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
       final MetricsApi metricsApi = api.getMetricsApi(resourceId);
       assertEquals(metricsApi.list(filter), ImmutableList.of(Metric.create(ImmutableList.of(MetricData
-                  .create(dateFormat.parse("2017-06-01T07:14:00", new ParsePosition(0)), null, "0.295", null, null,
-                        null)),
+                .create(dateFormat.parse("2017-06-01T07:14:00", new ParsePosition(0)), null,
+                    Double.valueOf(0.295), null, null, null)),
             "/subscriptions/SUBSCRIPTIONID/resourceGroups/myresourcegroup/providers"
                   + "/Microsoft.Compute/virtualMachines/myvm/providers/Microsoft.Insights/metrics/Percentage CPU",
             MetricName.create("Percentage CPU", "Percentage CPU"), "Microsoft.Insights/metrics", "Percent")));
